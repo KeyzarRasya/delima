@@ -1,21 +1,25 @@
-# Stage 1: Build the application
-FROM node:20-alpine AS builder
+# --- Build Stage ---
+FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copy the rest of the application source code
 COPY . .
-
-# Build the application
 RUN npm run build
 
-# Stage 2: Production environment
-FROM nginx:alpine
-COPY --from=builder /app/build /usr/share/nginx/html
+# --- Runtime Stage ---
+FROM node:22-alpine AS runner
+WORKDIR /app
 
-# Expose port 80 and start nginx
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Copy only what's necessary
+COPY package*.json ./
+COPY --from=builder /app/build ./build
+
+# Install only production dependencies
+RUN npm ci --omit=dev
+
+# The Node adapter runs on port 3000 by default
+EXPOSE 3000
+
+CMD ["node", "build"]
