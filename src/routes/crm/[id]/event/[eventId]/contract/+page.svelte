@@ -388,7 +388,7 @@
                           <option value="type3">Type 3</option>
                         </select>
                         <button on:click={handleCreateBanquet} class="px-3 py-1.5 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700">
-                          Create Banquet Delima
+                          Create Banquet Order
                         </button>
                         <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
                           Process Book
