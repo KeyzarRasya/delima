@@ -31,6 +31,22 @@
     }
   }
   
+  // Auto-save venue when selected
+  $: {
+    if (tempVenue && !eventData.selectedVenues.includes(tempVenue)) {
+      eventData.selectedVenues = [...eventData.selectedVenues, tempVenue];
+      tempVenue = '';
+    }
+  }
+  
+  // Auto-save pax when selected
+  $: {
+    if (tempPax && !eventData.selectedPax.includes(tempPax)) {
+      eventData.selectedPax = [...eventData.selectedPax, tempPax];
+      tempPax = '';
+    }
+  }
+  
   // Buffet data
   let buffetType = '';
   let buffetItems = [
@@ -77,22 +93,8 @@
   let pendukungIntegiri = '';
   let pendukungTarian = '';
   
-  function addVenue() {
-    if (tempVenue && !eventData.selectedVenues.includes(tempVenue)) {
-      eventData.selectedVenues = [...eventData.selectedVenues, tempVenue];
-      tempVenue = '';
-    }
-  }
-  
   function removeVenue(venue) {
     eventData.selectedVenues = eventData.selectedVenues.filter(v => v !== venue);
-  }
-  
-  function addPax() {
-    if (tempPax && !eventData.selectedPax.includes(tempPax)) {
-      eventData.selectedPax = [...eventData.selectedPax, tempPax];
-      tempPax = '';
-    }
   }
   
   function removePax(pax) {
@@ -103,53 +105,44 @@
     goto(`/crm/${contactId}`);
   }
   
-  function addBuffetLine() {
+  function addBuffetRow() {
     buffetItems = [...buffetItems, { category: '', menu: '', quantity: '', notes: '' }];
   }
   
-  function removeBuffetLine(index) {
+  function removeBuffetRow(index) {
     buffetItems = buffetItems.filter((_, i) => i !== index);
   }
   
-  function addGubukanLine() {
+  function addGubukanRow() {
     gubukanItems = [...gubukanItems, { category: '', menu: '', quantity: '', notes: '' }];
   }
   
-  function removeGubukanLine(index) {
+  function removeGubukanRow(index) {
     gubukanItems = gubukanItems.filter((_, i) => i !== index);
   }
   
-  function addDekorasiLine() {
+  function addDekorasiRow() {
     dekorasiItems = [...dekorasiItems, { item: '', quantity: '', notes: '' }];
   }
   
-  function removeDekorasiLine(index) {
+  function removeDekorasiRow(index) {
     dekorasiItems = dekorasiItems.filter((_, i) => i !== index);
   }
   
-  function addRiasBusanaLine() {
+  function addRiasBusanaRow() {
     riasBusanaItems = [...riasBusanaItems, { item: '', quantity: '', notes: '' }];
   }
   
-  function removeRiasBusanaLine(index) {
+  function removeRiasBusanaRow(index) {
     riasBusanaItems = riasBusanaItems.filter((_, i) => i !== index);
   }
   
-  function addPhotoVideoLine() {
+  function addPhotoVideoRow() {
     photoVideoItems = [...photoVideoItems, { item: '', quantity: '', notes: '' }];
   }
   
-  function removePhotoVideoLine(index) {
+  function removePhotoVideoRow(index) {
     photoVideoItems = photoVideoItems.filter((_, i) => i !== index);
-  }
-  
-  function handleSave() {
-    console.log('Saving event details...', eventData);
-    alert('Event details saved!');
-  }
-  
-  function handleProceedToContract() {
-    goto(`/crm/${contactId}/event/${eventId}/contract`);
   }
 </script>
 
@@ -157,7 +150,7 @@
   <Sidebar />
   
   <main class="flex-1 p-8 overflow-y-auto">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
       <div class="mb-6">
         <button
           on:click={goBack}
@@ -171,36 +164,34 @@
       </div>
       
       <div class="bg-white rounded-lg shadow-lg p-8">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">{eventData.name}</h1>
-        
         <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
-          <input
-            type="date"
-            bind:value={eventData.eventDate}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
+          <h1 class="text-2xl font-bold text-gray-800 mb-4">{eventData.name}</h1>
+          
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
+              <input
+                type="date"
+                bind:value={eventData.eventDate}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
         </div>
         
-        <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-2 gap-6 mb-8">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Venue</label>
-            <div class="flex gap-2 mb-2">
+            <div class="mb-2">
               <select
                 bind:value={tempVenue}
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <option value="">Select venue</option>
                 {#each venueOptions as venue}
                   <option value={venue}>{venue}</option>
                 {/each}
               </select>
-              <button
-                on:click={addVenue}
-                class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
-              >
-                Add
-              </button>
             </div>
             <div class="flex flex-wrap gap-2">
               {#each eventData.selectedVenues as venue}
@@ -218,22 +209,16 @@
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Number of Pax</label>
-            <div class="flex gap-2 mb-2">
+            <div class="mb-2">
               <select
                 bind:value={tempPax}
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <option value="">Select pax</option>
                 {#each paxOptions as pax}
                   <option value={pax}>{pax} Pax</option>
                 {/each}
               </select>
-              <button
-                on:click={addPax}
-                class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
-              >
-                Add
-              </button>
             </div>
             <div class="flex flex-wrap gap-2">
               {#each eventData.selectedPax as pax}
@@ -255,8 +240,7 @@
             <nav class="flex space-x-4">
               {#each eventData.selectedPax as pax}
                 <button
-                  class="px-4 py-2 font-medium border-b-2 transition-colors {activeTab === pax ?
-                    'border-amber-600 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}"
+                  class="px-4 py-2 font-medium border-b-2 transition-colors {activeTab === pax ? 'border-amber-600 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}"
                   on:click={() => activeTab = pax}
                 >
                   {pax} Pax
@@ -317,32 +301,58 @@
                 </thead>
                 <tbody>
                   {#each buffetItems as item, index}
-                    <tr class="border-b">
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.category} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                    <tr>
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.category}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.menu} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.menu}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.quantity} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.quantity}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.notes} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.notes}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
                       <td class="py-2">
-                        <button on:click={() => removeBuffetLine(index)} class="text-red-500 hover:text-red-700">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {#if buffetItems.length > 1}
+                          <button
+                            on:click={() => removeBuffetRow(index)}
+                            class="text-red-500 hover:text-red-700"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        {/if}
                       </td>
                     </tr>
                   {/each}
                 </tbody>
               </table>
+              <button
+                on:click={addBuffetRow}
+                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
+              >
+                Add row
+              </button>
             </div>
-            <button on:click={addBuffetLine} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">Add a line</button>
           </section>
           
           <section>
@@ -360,53 +370,80 @@
                 </thead>
                 <tbody>
                   {#each gubukanItems as item, index}
-                    <tr class="border-b">
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.category} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                    <tr>
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.category}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.menu} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.menu}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.quantity} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.quantity}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.notes} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.notes}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
                       <td class="py-2">
-                        <button on:click={() => removeGubukanLine(index)} class="text-red-500 hover:text-red-700">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {#if gubukanItems.length > 1}
+                          <button
+                            on:click={() => removeGubukanRow(index)}
+                            class="text-red-500 hover:text-red-700"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        {/if}
                       </td>
                     </tr>
                   {/each}
                 </tbody>
               </table>
+              <button
+                on:click={addGubukanRow}
+                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
+              >
+                Add row
+              </button>
             </div>
-            <button on:click={addGubukanLine} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">Add a line</button>
           </section>
           
           <section>
             <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Dekorasi Pelaminan dan Ruangan</h2>
-              <div class="grid grid-cols-2 gap-4">
+              <h2 class="text-lg font-bold text-gray-800 mb-2">Dekorasi</h2>
+              <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={dekorasiType} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <select bind:value={dekorasiType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
                     <option value="">Select type</option>
-                    <option value="type1">Type 1</option>
-                    <option value="type2">Type 2</option>
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="deluxe">Deluxe</option>
                   </select>
                 </div>
                 <div class="flex items-center gap-2">
                   <label class="text-sm text-gray-600">Vendor</label>
-                  <select bind:value={dekorasiVendor} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select vendor</option>
-                    <option value="vendor1">Vendor 1</option>
-                    <option value="vendor2">Vendor 2</option>
-                  </select>
+                  <input
+                    type="text"
+                    bind:value={dekorasiVendor}
+                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
               </div>
             </div>
@@ -422,50 +459,73 @@
                 </thead>
                 <tbody>
                   {#each dekorasiItems as item, index}
-                    <tr class="border-b">
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.item} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                    <tr>
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.item}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.quantity} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.quantity}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.notes} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.notes}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
                       <td class="py-2">
-                        <button on:click={() => removeDekorasiLine(index)} class="text-red-500 hover:text-red-700">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {#if dekorasiItems.length > 1}
+                          <button
+                            on:click={() => removeDekorasiRow(index)}
+                            class="text-red-500 hover:text-red-700"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        {/if}
                       </td>
                     </tr>
                   {/each}
                 </tbody>
               </table>
+              <button
+                on:click={addDekorasiRow}
+                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
+              >
+                Add row
+              </button>
             </div>
-            <button on:click={addDekorasiLine} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">Add a line</button>
           </section>
           
           <section>
             <div class="mb-4">
               <h2 class="text-lg font-bold text-gray-800 mb-2">Rias dan Busana</h2>
-              <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={riasBusanaType} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <select bind:value={riasBusanaType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
                     <option value="">Select type</option>
-                    <option value="type1">Type 1</option>
-                    <option value="type2">Type 2</option>
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="deluxe">Deluxe</option>
                   </select>
                 </div>
                 <div class="flex items-center gap-2">
                   <label class="text-sm text-gray-600">Vendor</label>
-                  <select bind:value={riasBusanaVendor} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select vendor</option>
-                    <option value="vendor1">Vendor 1</option>
-                    <option value="vendor2">Vendor 2</option>
-                  </select>
+                  <input
+                    type="text"
+                    bind:value={riasBusanaVendor}
+                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
               </div>
             </div>
@@ -481,50 +541,73 @@
                 </thead>
                 <tbody>
                   {#each riasBusanaItems as item, index}
-                    <tr class="border-b">
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.item} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                    <tr>
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.item}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.quantity} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.quantity}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.notes} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.notes}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
                       <td class="py-2">
-                        <button on:click={() => removeRiasBusanaLine(index)} class="text-red-500 hover:text-red-700">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {#if riasBusanaItems.length > 1}
+                          <button
+                            on:click={() => removeRiasBusanaRow(index)}
+                            class="text-red-500 hover:text-red-700"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        {/if}
                       </td>
                     </tr>
                   {/each}
                 </tbody>
               </table>
+              <button
+                on:click={addRiasBusanaRow}
+                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
+              >
+                Add row
+              </button>
             </div>
-            <button on:click={addRiasBusanaLine} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">Add a line</button>
           </section>
           
           <section>
             <div class="mb-4">
               <h2 class="text-lg font-bold text-gray-800 mb-2">Photo dan Video</h2>
-              <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={photoVideoType} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <select bind:value={photoVideoType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
                     <option value="">Select type</option>
-                    <option value="type1">Type 1</option>
-                    <option value="type2">Type 2</option>
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="deluxe">Deluxe</option>
                   </select>
                 </div>
                 <div class="flex items-center gap-2">
                   <label class="text-sm text-gray-600">Vendor</label>
-                  <select bind:value={photoVideoVendor} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select vendor</option>
-                    <option value="vendor1">Vendor 1</option>
-                    <option value="vendor2">Vendor 2</option>
-                  </select>
+                  <input
+                    type="text"
+                    bind:value={photoVideoVendor}
+                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
               </div>
             </div>
@@ -540,78 +623,98 @@
                 </thead>
                 <tbody>
                   {#each photoVideoItems as item, index}
-                    <tr class="border-b">
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.item} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                    <tr>
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.item}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.quantity} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.quantity}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
-                      <td class="py-2 pr-2">
-                        <input type="text" bind:value={item.notes} class="w-full px-2 py-1 border border-gray-300 rounded" />
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.notes}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
                       </td>
                       <td class="py-2">
-                        <button on:click={() => removePhotoVideoLine(index)} class="text-red-500 hover:text-red-700">
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {#if photoVideoItems.length > 1}
+                          <button
+                            on:click={() => removePhotoVideoRow(index)}
+                            class="text-red-500 hover:text-red-700"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        {/if}
                       </td>
                     </tr>
                   {/each}
                 </tbody>
               </table>
+              <button
+                on:click={addPhotoVideoRow}
+                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
+              >
+                Add row
+              </button>
             </div>
-            <button on:click={addPhotoVideoLine} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">Add a line</button>
           </section>
           
           <section>
-            <div class="grid grid-cols-2 gap-6">
-              <div>
-                <div class="mb-4">
-                  <h2 class="text-lg font-bold text-gray-800 mb-2">Entertainment</h2>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="flex items-center gap-2">
-                      <label class="text-sm text-gray-600">Type</label>
-                      <select bind:value={entertainmentType} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Select type</option>
-                        <option value="type1">Type 1</option>
-                        <option value="type2">Type 2</option>
-                      </select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <label class="text-sm text-gray-600">Vendor</label>
-                      <select bind:value={entertainmentVendor} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Select vendor</option>
-                        <option value="vendor1">Vendor 1</option>
-                        <option value="vendor2">Vendor 2</option>
-                      </select>
-                    </div>
-                  </div>
+            <div class="mb-4">
+              <h2 class="text-lg font-bold text-gray-800 mb-2">Entertainment</h2>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm text-gray-600">Type</label>
+                  <select bind:value={entertainmentType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="">Select type</option>
+                    <option value="band">Band</option>
+                    <option value="dj">DJ</option>
+                    <option value="acoustic">Acoustic</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-sm text-gray-600">Vendor</label>
+                  <input
+                    type="text"
+                    bind:value={entertainmentVendor}
+                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
               </div>
-              
-              <div>
-                <div class="mb-4">
-                  <h2 class="text-lg font-bold text-gray-800 mb-2">Wedding Organizer</h2>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="flex items-center gap-2">
-                      <label class="text-sm text-gray-600">Type</label>
-                      <select bind:value={weddingOrganizerType} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Select type</option>
-                        <option value="type1">Type 1</option>
-                        <option value="type2">Type 2</option>
-                      </select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <label class="text-sm text-gray-600">Vendor</label>
-                      <select bind:value={weddingOrganizerVendor} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Select vendor</option>
-                        <option value="vendor1">Vendor 1</option>
-                        <option value="vendor2">Vendor 2</option>
-                      </select>
-                    </div>
-                  </div>
+            </div>
+          </section>
+          
+          <section>
+            <div class="mb-4">
+              <h2 class="text-lg font-bold text-gray-800 mb-2">Wedding Organizer</h2>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm text-gray-600">Type</label>
+                  <select bind:value={weddingOrganizerType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="">Select type</option>
+                    <option value="full">Full Service</option>
+                    <option value="partial">Partial Service</option>
+                    <option value="day-of">Day-of Coordination</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-sm text-gray-600">Vendor</label>
+                  <input
+                    type="text"
+                    bind:value={weddingOrganizerVendor}
+                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
               </div>
             </div>
@@ -620,59 +723,40 @@
           <section>
             <h2 class="text-lg font-bold text-gray-800 mb-4">Pendukung</h2>
             <div class="grid grid-cols-2 gap-4">
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 w-32">MC</label>
-                <select bind:value={pendukungMc} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select type</option>
-                  <option value="type1">Type 1</option>
-                  <option value="type2">Type 2</option>
-                </select>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">MC</label>
+                <input
+                  type="text"
+                  bind:value={pendukungMc}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
               </div>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 w-32">Upacara Adat</label>
-                <select bind:value={pendukungUpacaraAdat} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select type</option>
-                  <option value="type1">Type 1</option>
-                  <option value="type2">Type 2</option>
-                </select>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Upacara Adat</label>
+                <input
+                  type="text"
+                  bind:value={pendukungUpacaraAdat}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
               </div>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 w-32">Integiri</label>
-                <select bind:value={pendukungIntegiri} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select type</option>
-                  <option value="type1">Type 1</option>
-                  <option value="type2">Type 2</option>
-                </select>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Integiri</label>
+                <input
+                  type="text"
+                  bind:value={pendukungIntegiri}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
               </div>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600 w-32">Tarian</label>
-                <select bind:value={pendukungTarian} class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select type</option>
-                  <option value="type1">Type 1</option>
-                  <option value="type2">Type 2</option>
-                </select>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Tarian</label>
+                <input
+                  type="text"
+                  bind:value={pendukungTarian}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
               </div>
             </div>
           </section>
-        </div>
-        
-        <div class="flex justify-between items-center mt-8 pt-6 border-t">
-          <button
-            on:click={handleSave}
-            class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-          >
-            Save
-          </button>
-          <button
-            on:click={handleProceedToContract}
-            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Proceed to Contract
-          </button>
-        </div>
-        {:else}
-        <div class="py-12 text-center text-gray-400">
-          <p>Please select at least one Number of Pax to begin filling out the event details</p>
         </div>
         {/if}
       </div>
