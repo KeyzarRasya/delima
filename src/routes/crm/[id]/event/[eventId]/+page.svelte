@@ -56,7 +56,7 @@
   
   // Gubukan data
   let gubukanItems = [
-    { category: '', menu: '', notes: '' }
+    { category: '', menu: '', quantity: '', notes: '' }
   ];
   
   // Dekorasi data
@@ -95,6 +95,14 @@
   
   function removePax(pax) {
     eventData.selectedPax = eventData.selectedPax.filter(p => p !== pax);
+  }
+  
+  function handlePrint() {
+    window.print();
+  }
+  
+  function proceedToContract() {
+    goto(`/crm/${contactId}/event/${eventId}/contract`);
   }
   
   function goBack() {
@@ -361,6 +369,7 @@
                   <tr class="border-b">
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
+                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
                     <th class="w-12"></th>
                   </tr>
@@ -379,6 +388,13 @@
                         <input
                           type="text"
                           bind:value={item.menu}
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </td>
+                      <td class="pr-2 py-2">
+                        <input
+                          type="text"
+                          bind:value={item.quantity}
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                         />
                       </td>
@@ -691,6 +707,21 @@
               </div>
             </div>
           </section>
+          
+          <div class="flex justify-end gap-2 pt-6 border-t border-gray-200">
+            <button
+              on:click={handlePrint}
+              class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Print
+            </button>
+            <button
+              on:click={proceedToContract}
+              class="px-6 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+            >
+              Proceed to Contract
+            </button>
+          </div>
         </div>
         {/if}
       </div>
