@@ -77,6 +77,171 @@
   let pendukungTarian = '';
   let pendukungTarianType = '';
   
+  // Update History data (readonly)
+  let updateHistory = [
+    {
+      date: '2024-01-15',
+      documents: [
+        { name: 'Update Banquet', url: '#' }
+      ]
+    },
+    {
+      date: '2024-01-10',
+      documents: [
+        { name: 'Change Vendor', url: '#' }
+      ]
+    }
+  ];
+  
+  // Rincian Biaya data
+  let rincianBiayaSections = [
+    {
+      name: 'Item',
+      items: []
+    }
+  ];
+  
+  let unassignedProducts = [];
+  
+  let historyPembayaran = [
+    { date: '', method: '', amount: '', status: 'In Payment' }
+  ];
+  
+  let rincianBiayaTotal = 0;
+  let totalPembayaran = 0;
+  let sisaTagihan = 0;
+  
+  let draggedItem = null;
+  let draggedFromSection = null;
+  let draggedItemIndex = null;
+  let draggedFromUnassigned = false;
+  
+  // Reactive calculation for Rincian Biaya total
+  $: {
+    const sectionsTotal = rincianBiayaSections.reduce((sectionSum, section) => {
+      const itemsTotal = section.items.reduce((itemSum, item) => {
+        const total = parseFloat(item.total) || 0;
+        return itemSum + total;
+      }, 0);
+      return sectionSum + itemsTotal;
+    }, 0);
+    
+    const unassignedTotal = unassignedProducts.reduce((sum, product) => {
+      const total = parseFloat(product.total) || 0;
+      return sum + total;
+    }, 0);
+    
+    rincianBiayaTotal = sectionsTotal + unassignedTotal;
+  }
+  
+  // Reactive calculation for Total Pembayaran
+  $: {
+    totalPembayaran = historyPembayaran.reduce((sum, payment) => {
+      const amount = parseFloat(payment.amount) || 0;
+      return sum + amount;
+    }, 0);
+  }
+  
+  // Reactive calculation for Sisa Tagihan
+  $: {
+    sisaTagihan = rincianBiayaTotal - totalPembayaran;
+  }
+  
+  function calculateItemTotal(sectionIndex, itemIndex) {
+    const item = rincianBiayaSections[sectionIndex].items[itemIndex];
+    const quantity = parseFloat(item.quantity) || 0;
+    const price = parseFloat(item.price) || 0;
+    rincianBiayaSections[sectionIndex].items[itemIndex].total = quantity * price;
+  }
+  
+  function calculateUnassignedTotal(index) {
+    const product = unassignedProducts[index];
+    const quantity = parseFloat(product.quantity) || 0;
+    const price = parseFloat(product.price) || 0;
+    unassignedProducts[index].total = quantity * price;
+  }
+  
+  function toggleItemVisibility(sectionIndex, itemIndex) {
+    rincianBiayaSections[sectionIndex].items[itemIndex].visible = !rincianBiayaSections[sectionIndex].items[itemIndex].visible;
+  }
+  
+  function handleDragStart(e, sectionIndex, itemIndex) {
+    draggedItem = rincianBiayaSections[sectionIndex].items[itemIndex];
+    draggedFromSection = sectionIndex;
+    draggedItemIndex = itemIndex;
+    draggedFromUnassigned = false;
+  }
+  
+  function handleDragStartUnassigned(e, index) {
+    draggedItem = unassignedProducts[index];
+    draggedItemIndex = index;
+    draggedFromUnassigned = true;
+    draggedFromSection = null;
+  }
+  
+  function handleDragOver(e) {
+    e.preventDefault();
+  }
+  
+  function handleDrop(e, targetSectionIndex) {
+    e.preventDefault();
+    
+    if (!draggedItem) return;
+    
+    // Remove from original location
+    if (draggedFromUnassigned) {
+      unassignedProducts = unassignedProducts.filter((_, i) => i !== draggedItemIndex);
+    } else if (draggedFromSection !== null) {
+      rincianBiayaSections[draggedFromSection].items = rincianBiayaSections[draggedFromSection].items.filter((_, i) => i !== draggedItemIndex);
+    }
+    
+    // Add to target section
+    rincianBiayaSections[targetSectionIndex].items = [...rincianBiayaSections[targetSectionIndex].items, draggedItem];
+    
+    // Reset drag state
+    draggedItem = null;
+    draggedFromSection = null;
+    draggedItemIndex = null;
+    draggedFromUnassigned = false;
+  }
+  
+  function addProduct() {
+    unassignedProducts = [...unassignedProducts, { name: '', quantity: 1, price: 0, total: 0, visible: true }];
+  }
+  
+  function addSection() {
+    const newSectionNumber = rincianBiayaSections.length + 1;
+    rincianBiayaSections = [...rincianBiayaSections, {
+      name: `Section ${newSectionNumber}`,
+      items: []
+    }];
+  }
+  
+  function removeSection(sectionIndex) {
+    rincianBiayaSections = rincianBiayaSections.filter((_, i) => i !== sectionIndex);
+  }
+  
+  function removeItem(sectionIndex, itemIndex) {
+    rincianBiayaSections[sectionIndex].items = rincianBiayaSections[sectionIndex].items.filter((_, i) => i !== itemIndex);
+  }
+  
+  function removeUnassignedProduct(index) {
+    unassignedProducts = unassignedProducts.filter((_, i) => i !== index);
+  }
+  
+  function addPaymentLine() {
+    historyPembayaran = [...historyPembayaran, { date: '', method: '', amount: '', status: 'In Payment' }];
+  }
+  
+  function removePaymentLine(index) {
+    historyPembayaran = historyPembayaran.filter((_, i) => i !== index);
+  }
+  
+  function formatCurrency(value) {
+    if (!value) return 'Rp 0.00';
+    return `Rp ${parseFloat(value).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  
   function goBack() {
     goto(`/crm/${contactId}/event/${eventId}`);
   }
@@ -132,6 +297,10 @@
   function handleSave() {
     console.log('Saving contract details...', contractData);
     alert('Contract details saved!');
+  }
+  
+  function handleCreateBanquet() {
+    goto(`/crm/${contactId}/event/${eventId}/contract/banquet`);
   }
 </script>
 
@@ -218,16 +387,12 @@
                           <option value="type2">Type 2</option>
                           <option value="type3">Type 3</option>
                         </select>
-                        <select bind:value={item.vendor} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                          <option value="">Create Banquet Delima</option>
-                          <option value="vendor2">Vendor 2</option>
-                          <option value="vendor3">Vendor 3</option>
-                        </select>
-                        <select bind:value={item.bookingStatus} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                          <option value="">Process Book</option>
-                          <option value="booked">Booked</option>
-                          <option value="confirmed">Confirmed</option>
-                        </select>
+                        <button on:click={handleCreateBanquet} class="px-3 py-1.5 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700">
+                          Create Banquet Delima
+                        </button>
+                        <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                          Process Book
+                        </button>
                         <span class="text-gray-600 text-sm">Booking Status: In Process</span>
                       </div>
                     </div>
@@ -366,11 +531,9 @@
                       </select>
                     </div>
                     <div class="flex items-center gap-2">
-                      <select bind:value={dekorasiType} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                        <option value="">Process Book</option>
-                        <option value="booked">Booked</option>
-                        <option value="confirmed">Confirmed</option>
-                      </select>
+                      <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                        Process Book
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -432,11 +595,9 @@
                       </select>
                     </div>
                     <div class="flex items-center gap-2">
-                      <select bind:value={riasBusanaType} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                        <option value="">Process Book</option>
-                        <option value="booked">Booked</option>
-                        <option value="confirmed">Confirmed</option>
-                      </select>
+                      <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                        Process Book
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -498,11 +659,9 @@
                       </select>
                     </div>
                     <div class="flex items-center gap-2">
-                      <select bind:value={photoVideoType} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                        <option value="">Process Book</option>
-                        <option value="booked">Booked</option>
-                        <option value="confirmed">Confirmed</option>
-                      </select>
+                      <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                        Process Book
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -565,11 +724,9 @@
                         </select>
                       </div>
                       <div class="flex items-center gap-2">
-                        <select bind:value={entertainmentType} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                          <option value="">Process Book</option>
-                          <option value="booked">Booked</option>
-                          <option value="confirmed">Confirmed</option>
-                        </select>
+                        <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                          Process Book
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -586,11 +743,9 @@
                         </select>
                       </div>
                       <div class="flex items-center gap-2">
-                        <select bind:value={weddingOrganizerType} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                          <option value="">Process Book</option>
-                          <option value="booked">Booked</option>
-                          <option value="confirmed">Confirmed</option>
-                        </select>
+                        <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                          Process Book
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -607,11 +762,9 @@
                       <option value="type2">Type 2</option>
                       <option value="type3">Type 3</option>
                     </select>
-                    <select bind:value={pendukungMcType} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                      <option value="">Process Book</option>
-                      <option value="booked">Booked</option>
-                      <option value="confirmed">Confirmed</option>
-                    </select>
+                    <button class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                      Process Book
+                    </button>
                   </div>
                   
                   <div class="flex items-center gap-4">
@@ -621,11 +774,9 @@
                       <option value="type2">Type 2</option>
                       <option value="type3">Type 3</option>
                     </select>
-                    <select bind:value={pendukungUpacaraAdatType} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                      <option value="">Process Book</option>
-                      <option value="booked">Booked</option>
-                      <option value="confirmed">Confirmed</option>
-                    </select>
+                    <button class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                      Process Book
+                    </button>
                   </div>
                   
                   <div class="flex items-center gap-4">
@@ -635,11 +786,9 @@
                       <option value="type2">Type 2</option>
                       <option value="type3">Type 3</option>
                     </select>
-                    <select bind:value={pendukungIntagiriType} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                      <option value="">Process Book</option>
-                      <option value="booked">Booked</option>
-                      <option value="confirmed">Confirmed</option>
-                    </select>
+                    <button class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                      Process Book
+                    </button>
                   </div>
                   
                   <div class="flex items-center gap-4">
@@ -649,11 +798,9 @@
                       <option value="type2">Type 2</option>
                       <option value="type3">Type 3</option>
                     </select>
-                    <select bind:value={pendukungTarianType} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                      <option value="">Process Book</option>
-                      <option value="booked">Booked</option>
-                      <option value="confirmed">Confirmed</option>
-                    </select>
+                    <button class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                      Process Book
+                    </button>
                   </div>
                 </div>
               </section>
@@ -662,22 +809,330 @@
             <div class="flex justify-end mt-8 pt-6 border-t">
               <button
                 on:click={handleSave}
-                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium"
               >
                 Save
               </button>
             </div>
           {:else if activeTab === 'rincian-biaya'}
-            <div class="py-12 text-center text-gray-400">
-              <p>Rincian Biaya content will be added here</p>
+            <div class="space-y-8">
+              <section>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 px-2">No</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 px-2">Item</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 px-2">Qty</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 px-2">Harga</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 px-2">Total Harga Items</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 px-2">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {#each rincianBiayaSections as section, sectionIndex}
+                        <tr class="bg-gray-100">
+                          <td class="py-3 px-2 font-semibold text-gray-800">{sectionIndex + 1}</td>
+                          <td class="py-3 px-2" colspan="4">
+                            <input
+                              type="text"
+                              bind:value={section.name}
+                              placeholder="Section name..."
+                              class="w-full px-3 py-2 border-0 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                            />
+                          </td>
+                          <td class="py-3 px-2">
+                            <button on:click={() => removeSection(sectionIndex)} class="text-red-500 hover:text-red-700 transition-colors">
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        
+                        {#if section.items.length === 0}
+                          <tr 
+                            class="hover:bg-amber-50 transition-colors"
+                            on:dragover={(e) => handleDragOver(e)}
+                            on:drop={(e) => handleDrop(e, sectionIndex)}
+                          >
+                            <td colspan="6" class="py-8 text-center text-gray-400 text-sm italic">
+                              No items in this section. Drag products here.
+                            </td>
+                          </tr>
+                        {:else}
+                          {#each section.items as item, itemIndex}
+                            <tr 
+                              class="hover:bg-gray-50 transition-colors cursor-move"
+                              draggable="true"
+                              on:dragstart={(e) => handleDragStart(e, sectionIndex, itemIndex)}
+                              on:dragover={(e) => handleDragOver(e)}
+                              on:drop={(e) => handleDrop(e, sectionIndex)}
+                            >
+                              <td class="py-3 px-2">
+                                <button class="text-gray-400 hover:text-gray-600 cursor-move">
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                  </svg>
+                                </button>
+                              </td>
+                              <td class="py-3 px-2">
+                                <input
+                                  type="text"
+                                  bind:value={item.name}
+                                  placeholder="Nama item..."
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                />
+                              </td>
+                              <td class="py-3 px-2">
+                                <input
+                                  type="number"
+                                  bind:value={item.quantity}
+                                  on:input={() => calculateItemTotal(sectionIndex, itemIndex)}
+                                  class="w-20 px-3 py-2 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                />
+                              </td>
+                              <td class="py-3 px-2">
+                                <input
+                                  type="number"
+                                  bind:value={item.price}
+                                  on:input={() => calculateItemTotal(sectionIndex, itemIndex)}
+                                  class="w-32 px-3 py-2 border border-gray-300 rounded-md text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                />
+                              </td>
+                              <td class="py-3 px-2 text-right font-medium text-gray-800">
+                                {formatCurrency(item.total)}
+                              </td>
+                              <td class="py-3 px-2">
+                                <div class="flex gap-2">
+                                  <button
+                                    on:click={() => toggleItemVisibility(sectionIndex, itemIndex)}
+                                    class="text-gray-500 hover:text-amber-600 transition-colors"
+                                    title={item.visible ? 'Hide from print' : 'Show in print'}
+                                  >
+                                    {#if item.visible}
+                                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                    {:else}
+                                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                      </svg>
+                                    {/if}
+                                  </button>
+                                  <button on:click={() => removeItem(sectionIndex, itemIndex)} class="text-red-500 hover:text-red-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          {/each}
+                        {/if}
+                      {/each}
+                      
+                      {#each unassignedProducts as product, index}
+                        <tr 
+                          class="bg-amber-50 hover:bg-amber-100 transition-colors cursor-move"
+                          draggable="true"
+                          on:dragstart={(e) => handleDragStartUnassigned(e, index)}
+                        >
+                          <td class="py-3 px-2">
+                            <button class="text-amber-500 hover:text-amber-700 cursor-move">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                              </svg>
+                            </button>
+                          </td>
+                          <td class="py-3 px-2">
+                            <input
+                              type="text"
+                              bind:value={product.name}
+                              placeholder="Nama item..."
+                              class="w-full px-3 py-2 border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                            />
+                          </td>
+                          <td class="py-3 px-2">
+                            <input
+                              type="number"
+                              bind:value={product.quantity}
+                              on:input={() => calculateUnassignedTotal(index)}
+                              class="w-20 px-3 py-2 border border-amber-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                            />
+                          </td>
+                          <td class="py-3 px-2">
+                            <input
+                              type="number"
+                              bind:value={product.price}
+                              on:input={() => calculateUnassignedTotal(index)}
+                              class="w-32 px-3 py-2 border border-amber-300 rounded-md text-right focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                            />
+                          </td>
+                          <td class="py-3 px-2 text-right font-medium text-gray-800">
+                            {formatCurrency(product.total)}
+                          </td>
+                          <td class="py-3 px-2">
+                            <button on:click={() => removeUnassignedProduct(index)} class="text-red-500 hover:text-red-700 transition-colors">
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      {/each}
+                      
+                      <tr class="bg-amber-100">
+                        <td colspan="4" class="py-4 px-2 text-right font-bold text-gray-800">Total Biaya</td>
+                        <td class="py-4 px-2 text-right font-bold text-gray-900 text-lg">{formatCurrency(rincianBiayaTotal)}</td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div class="flex gap-4 mt-4">
+                  <button on:click={addProduct} class="text-amber-700 hover:text-amber-800 font-medium text-sm flex items-center gap-1 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Product
+                  </button>
+                  <button on:click={addSection} class="text-amber-700 hover:text-amber-800 font-medium text-sm flex items-center gap-1 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Section
+                  </button>
+                </div>
+              </section>
+              
+              <section>
+                <h2 class="text-lg font-bold text-gray-800 mb-4">History Pembayaran</h2>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 w-8"></th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Date</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Method</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Amount</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Status</th>
+                        <th class="w-12"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {#each historyPembayaran as payment, index}
+                        <tr class="hover:bg-gray-50">
+                          <td class="py-3 pr-2">
+                            <button class="text-gray-400 hover:text-gray-600 cursor-move">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                              </svg>
+                            </button>
+                          </td>
+                          <td class="py-3 pr-2">
+                            <input type="date" bind:value={payment.date} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                          </td>
+                          <td class="py-3 pr-2">
+                            <input type="text" bind:value={payment.method} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                          </td>
+                          <td class="py-3 pr-2">
+                            <input type="number" bind:value={payment.amount} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                          </td>
+                          <td class="py-3 pr-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              In Payment
+                            </span>
+                          </td>
+                          <td class="py-3">
+                            <button on:click={() => removePaymentLine(index)} class="text-red-500 hover:text-red-700 transition-colors">
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      {/each}
+                    </tbody>
+                  </table>
+                </div>
+                <button on:click={addPaymentLine} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm transition-colors">Add a line</button>
+              </section>
+              
+              <div class="grid grid-cols-3 gap-6 mt-8 p-6 bg-amber-50 rounded-lg">
+                <div class="text-center">
+                  <h3 class="text-sm font-medium text-gray-600 mb-2">Tagihan</h3>
+                  <p class="text-2xl font-bold text-gray-800">{formatCurrency(rincianBiayaTotal)}</p>
+                </div>
+                <div class="text-center">
+                  <h3 class="text-sm font-medium text-gray-600 mb-2">Pembayaran</h3>
+                  <p class="text-2xl font-bold text-gray-800">{formatCurrency(totalPembayaran)}</p>
+                </div>
+                <div class="text-center">
+                  <h3 class="text-sm font-medium text-gray-600 mb-2">Sisa Tagihan</h3>
+                  <p class="text-2xl font-bold text-gray-800">{formatCurrency(sisaTagihan)}</p>
+                </div>
+              </div>
             </div>
           {:else if activeTab === 'update-history'}
-            <div class="py-12 text-center text-gray-400">
-              <p>Update History content will be added here</p>
+            <div class="space-y-6">
+              <section>
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Update History</h2>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3 w-8"></th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Date</th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Document</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {#each updateHistory as history, index}
+                        <tr class="hover:bg-gray-50">
+                          <td class="py-3 pr-2">
+                            <button class="text-gray-400 cursor-move">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                              </svg>
+                            </button>
+                          </td>
+                          <td class="py-3 pr-2 text-gray-800">
+                            {history.date}
+                          </td>
+                          <td class="py-3 pr-2">
+                            {#if history.documents && history.documents.length > 0}
+                              <div class="flex flex-wrap gap-2">
+                                {#each history.documents as doc}
+                                  <a href={doc.url} target="_blank" class="text-amber-600 hover:text-amber-800 underline text-sm">
+                                    {doc.name}
+                                  </a>
+                                {/each}
+                              </div>
+                            {:else}
+                              <span class="text-gray-400 text-sm">No documents</span>
+                            {/if}
+                          </td>
+                        </tr>
+                      {/each}
+                      
+                      {#if updateHistory.length === 0}
+                        <tr>
+                          <td colspan="3" class="py-12 text-center text-gray-400 text-sm italic">
+                            No update history available
+                          </td>
+                        </tr>
+                      {/if}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
             </div>
           {/if}
         </div>
       </div>
     </div>
   </main>
-</div>
+</div>  
