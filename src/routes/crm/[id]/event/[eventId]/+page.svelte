@@ -49,42 +49,38 @@
   
   // Buffet data
   let buffetType = '';
+  let buffetQuantity = '';
   let buffetItems = [
-    { category: '', menu: '', quantity: '', notes: '' }
+    { category: '', menu: '', notes: '' }
   ];
   
   // Gubukan data
   let gubukanItems = [
-    { category: '', menu: '', quantity: '', notes: '' }
+    { category: '', menu: '', notes: '' }
   ];
   
   // Dekorasi data
-  let dekorasiType = '';
   let dekorasiVendor = '';
   let dekorasiItems = [
     { item: '', quantity: '', notes: '' }
   ];
   
   // Rias dan Busana data
-  let riasBusanaType = '';
   let riasBusanaVendor = '';
   let riasBusanaItems = [
     { item: '', quantity: '', notes: '' }
   ];
   
   // Photo dan Video data
-  let photoVideoType = '';
   let photoVideoVendor = '';
   let photoVideoItems = [
     { item: '', quantity: '', notes: '' }
   ];
   
   // Entertainment data
-  let entertainmentType = '';
   let entertainmentVendor = '';
   
   // Wedding Organizer data
-  let weddingOrganizerType = '';
   let weddingOrganizerVendor = '';
   
   // Pendukung data
@@ -278,14 +274,24 @@
           <section>
             <div class="mb-4">
               <h2 class="text-lg font-bold text-gray-800 mb-2">Buffet</h2>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600">Type</label>
-                <select bind:value={buffetType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select type</option>
-                  <option value="basic">Basic</option>
-                  <option value="premium">Premium</option>
-                  <option value="deluxe">Deluxe</option>
-                </select>
+              <div class="space-y-2">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1">Type</label>
+                  <select bind:value={buffetType} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="">Select type</option>
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="deluxe">Deluxe</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1">Quantity</label>
+                  <input
+                    type="text"
+                    bind:value={buffetQuantity}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -294,7 +300,6 @@
                   <tr class="border-b">
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
                     <th class="w-12"></th>
                   </tr>
@@ -313,13 +318,6 @@
                         <input
                           type="text"
                           bind:value={item.menu}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.quantity}
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                         />
                       </td>
@@ -363,7 +361,6 @@
                   <tr class="border-b">
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
                     <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
                     <th class="w-12"></th>
                   </tr>
@@ -382,13 +379,6 @@
                         <input
                           type="text"
                           bind:value={item.menu}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.quantity}
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                         />
                       </td>
@@ -427,24 +417,14 @@
           <section>
             <div class="mb-4">
               <h2 class="text-lg font-bold text-gray-800 mb-2">Dekorasi</h2>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={dekorasiType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select type</option>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="deluxe">Deluxe</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Vendor</label>
-                  <input
-                    type="text"
-                    bind:value={dekorasiVendor}
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Vendor</label>
+                <select bind:value={dekorasiVendor} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="">Select vendor</option>
+                  <option value="vendor1">Vendor 1</option>
+                  <option value="vendor2">Vendor 2</option>
+                  <option value="vendor3">Vendor 3</option>
+                </select>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -509,24 +489,14 @@
           <section>
             <div class="mb-4">
               <h2 class="text-lg font-bold text-gray-800 mb-2">Rias dan Busana</h2>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={riasBusanaType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select type</option>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="deluxe">Deluxe</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Vendor</label>
-                  <input
-                    type="text"
-                    bind:value={riasBusanaVendor}
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Vendor</label>
+                <select bind:value={riasBusanaVendor} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="">Select vendor</option>
+                  <option value="vendor1">Vendor 1</option>
+                  <option value="vendor2">Vendor 2</option>
+                  <option value="vendor3">Vendor 3</option>
+                </select>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -591,24 +561,14 @@
           <section>
             <div class="mb-4">
               <h2 class="text-lg font-bold text-gray-800 mb-2">Photo dan Video</h2>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={photoVideoType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select type</option>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="deluxe">Deluxe</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Vendor</label>
-                  <input
-                    type="text"
-                    bind:value={photoVideoVendor}
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Vendor</label>
+                <select bind:value={photoVideoVendor} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="">Select vendor</option>
+                  <option value="vendor1">Vendor 1</option>
+                  <option value="vendor2">Vendor 2</option>
+                  <option value="vendor3">Vendor 3</option>
+                </select>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -671,51 +631,25 @@
           </section>
           
           <section>
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Entertainment</h2>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={entertainmentType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select type</option>
-                    <option value="band">Band</option>
-                    <option value="dj">DJ</option>
-                    <option value="acoustic">Acoustic</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Vendor</label>
-                  <input
-                    type="text"
-                    bind:value={entertainmentVendor}
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Entertainment & Wedding Organizer</h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Entertainment</label>
+                <select bind:value={entertainmentVendor} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="">Select vendor</option>
+                  <option value="vendor1">Vendor 1</option>
+                  <option value="vendor2">Vendor 2</option>
+                  <option value="vendor3">Vendor 3</option>
+                </select>
               </div>
-            </div>
-          </section>
-          
-          <section>
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Wedding Organizer</h2>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Type</label>
-                  <select bind:value={weddingOrganizerType} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select type</option>
-                    <option value="full">Full Service</option>
-                    <option value="partial">Partial Service</option>
-                    <option value="day-of">Day-of Coordination</option>
-                  </select>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="text-sm text-gray-600">Vendor</label>
-                  <input
-                    type="text"
-                    bind:value={weddingOrganizerVendor}
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Wedding Organizer</label>
+                <select bind:value={weddingOrganizerVendor} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="">Select vendor</option>
+                  <option value="vendor1">Vendor 1</option>
+                  <option value="vendor2">Vendor 2</option>
+                  <option value="vendor3">Vendor 3</option>
+                </select>
               </div>
             </div>
           </section>
