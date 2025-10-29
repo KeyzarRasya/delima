@@ -116,6 +116,14 @@
   let draggedItemIndex = null;
   let draggedFromUnassigned = false;
   
+  // Reactive calculation for each section's total
+  $: sectionTotals = rincianBiayaSections.map(section => 
+    section.items.reduce((sum, item) => {
+      const total = parseFloat(item.total) || 0;
+      return sum + total;
+    }, 0)
+  );
+
   // Reactive calculation for Rincian Biaya total
   $: {
     const sectionsTotal = rincianBiayaSections.reduce((sectionSum, section) => {
@@ -308,62 +316,54 @@
   <Sidebar />
   
   <main class="flex-1 p-8 overflow-y-auto">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-6">
-        <button
-          on:click={goBack}
-          class="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Event
-        </button>
-      </div>
-      
-      <div class="bg-white rounded-lg shadow-lg">
-        <div class="p-8 border-b border-gray-200">
-          <div class="flex justify-between items-start mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">{contractData.name}</h1>
-            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm hover:bg-gray-300">
-              Print
+    <div class="max-w-6xl mx-auto">
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-8 py-6">
+          <div class="flex items-center justify-between mb-4">
+            <button
+              on:click={goBack}
+              class="flex items-center text-gray-600 hover:text-gray-800"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
             </button>
           </div>
           
-          <div class="grid grid-cols-4 gap-4 text-sm">
-            <div>
-              <label class="block text-gray-600 mb-1">Event Date</label>
+          <div class="space-y-4 mb-6">
+            <div class="flex items-center gap-4">
+              <label class="text-gray-700 font-medium w-40">Name:</label>
+              <input
+                type="text"
+                bind:value={contractData.name}
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <label class="text-gray-700 font-medium w-40">Event Date:</label>
               <input
                 type="date"
                 bind:value={contractData.eventDate}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
-            <div>
-              <label class="block text-gray-600 mb-1">Venue</label>
-              <div class="text-gray-800">-</div>
-            </div>
-            <div>
-              <label class="block text-gray-600 mb-1">Number of Pax</label>
-              <div class="text-gray-800">-</div>
-            </div>
-            <div>
-              <label class="block text-gray-600 mb-1">Reference Number</label>
+            
+            <div class="flex items-center gap-4">
+              <label class="text-gray-700 font-medium w-40">Reference Number:</label>
               <input
                 type="text"
                 bind:value={contractData.referenceNumber}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
-        </div>
-        
-        <div class="border-b border-gray-200">
-          <nav class="flex px-8">
+          
+          <nav class="flex gap-8">
             {#each tabs as tab}
               <button
-                class="px-6 py-4 font-medium border-b-2 transition-colors {activeTab === tab.id ?
-                  'border-amber-600 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}"
+                class="pb-4 px-1 border-b-2 font-medium text-sm transition-colors {activeTab === tab.id ? 'border-amber-600 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}"
                 on:click={() => activeTab = tab.id}
               >
                 {tab.label}
@@ -414,11 +414,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                       <span class="text-gray-800 text-sm">Quantity</span>
-                      <input
-                        type="text"
-                        bind:value={buffetQuantity}
-                        class="w-24 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
-                      />
+                      <input type="text" bind:value={buffetQuantity} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm w-20" />
                     </div>
                   </div>
                 </div>
@@ -711,50 +707,38 @@
               </section>
               
               <section>
-                <div class="grid grid-cols-2 gap-6">
-                  <div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-3">Entertainment</h2>
-                    <div class="flex items-center gap-4">
-                      <div class="flex items-center gap-2">
-                        <span class="text-gray-800 text-sm">Vendor</span>
-                        <select bind:value={entertainmentVendor} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                          <option value="">Type 1</option>
-                          <option value="vendor2">Vendor 2</option>
-                          <option value="vendor3">Vendor 3</option>
-                        </select>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                          Process Book
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-3">Wedding Organizer</h2>
-                    <div class="flex items-center gap-4">
-                      <div class="flex items-center gap-2">
-                        <span class="text-gray-800 text-sm">Vendor</span>
-                        <select bind:value={weddingOrganizerVendor} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                          <option value="">Type 1</option>
-                          <option value="vendor2">Vendor 2</option>
-                          <option value="vendor3">Vendor 3</option>
-                        </select>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                          Process Book
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Entertainment</h2>
+                <div class="flex items-center gap-4">
+                  <span class="text-gray-800 text-sm w-32">Vendor</span>
+                  <select bind:value={entertainmentVendor} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    <option value="">Type 1</option>
+                    <option value="vendor2">Vendor 2</option>
+                    <option value="vendor3">Vendor 3</option>
+                  </select>
+                  <button class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                    Process Book
+                  </button>
+                </div>
+              </section>
+              
+              <section>
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Wedding Organizer</h2>
+                <div class="flex items-center gap-4">
+                  <span class="text-gray-800 text-sm w-32">Vendor</span>
+                  <select bind:value={weddingOrganizerVendor} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    <option value="">Type 1</option>
+                    <option value="vendor2">Vendor 2</option>
+                    <option value="vendor3">Vendor 3</option>
+                  </select>
+                  <button class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                    Process Book
+                  </button>
                 </div>
               </section>
               
               <section>
                 <h2 class="text-lg font-bold text-gray-800 mb-4">Pendukung</h2>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-3">
                   <div class="flex items-center gap-4">
                     <span class="text-gray-800 text-sm w-32">MC</span>
                     <select bind:value={pendukungMc} class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
@@ -817,6 +801,7 @@
           {:else if activeTab === 'rincian-biaya'}
             <div class="space-y-8">
               <section>
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Rincian Biaya</h2>
                 <div class="overflow-x-auto">
                   <table class="min-w-full">
                     <thead>
@@ -930,6 +915,11 @@
                               </td>
                             </tr>
                           {/each}
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="py-2 px-2 text-right font-semibold text-gray-700 text-sm">Total Section</td>
+                            <td class="py-2 px-2 text-right font-semibold text-gray-800">{formatCurrency(sectionTotals[sectionIndex])}</td>
+                            <td></td>
+                          </tr>
                         {/if}
                       {/each}
                       
@@ -1014,36 +1004,44 @@
                   <table class="min-w-full">
                     <thead>
                       <tr>
-                        <th class="text-left text-sm font-medium text-gray-600 pb-3 w-8"></th>
                         <th class="text-left text-sm font-medium text-gray-600 pb-3">Date</th>
                         <th class="text-left text-sm font-medium text-gray-600 pb-3">Method</th>
                         <th class="text-left text-sm font-medium text-gray-600 pb-3">Amount</th>
                         <th class="text-left text-sm font-medium text-gray-600 pb-3">Status</th>
-                        <th class="w-12"></th>
+                        <th class="text-left text-sm font-medium text-gray-600 pb-3">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                       {#each historyPembayaran as payment, index}
-                        <tr class="hover:bg-gray-50">
-                          <td class="py-3 pr-2">
-                            <button class="text-gray-400 hover:text-gray-600 cursor-move">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-                              </svg>
-                            </button>
+                        <tr>
+                          <td class="py-3">
+                            <input
+                              type="date"
+                              bind:value={payment.date}
+                              class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            />
                           </td>
-                          <td class="py-3 pr-2">
-                            <input type="date" bind:value={payment.date} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                          <td class="py-3">
+                            <select
+                              bind:value={payment.method}
+                              class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            >
+                              <option value="">Select method</option>
+                              <option value="Cash">Cash</option>
+                              <option value="Transfer">Transfer</option>
+                              <option value="Credit Card">Credit Card</option>
+                            </select>
                           </td>
-                          <td class="py-3 pr-2">
-                            <input type="text" bind:value={payment.method} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                          <td class="py-3">
+                            <input
+                              type="number"
+                              bind:value={payment.amount}
+                              class="px-3 py-2 border border-gray-300 rounded-md text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            />
                           </td>
-                          <td class="py-3 pr-2">
-                            <input type="number" bind:value={payment.amount} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                          </td>
-                          <td class="py-3 pr-2">
-                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              In Payment
+                          <td class="py-3">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              {payment.status}
                             </span>
                           </td>
                           <td class="py-3">
@@ -1091,40 +1089,20 @@
                     </thead>
                     <tbody>
                       {#each updateHistory as history, index}
-                        <tr class="hover:bg-gray-50">
-                          <td class="py-3 pr-2">
-                            <button class="text-gray-400 cursor-move">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-                              </svg>
-                            </button>
-                          </td>
-                          <td class="py-3 pr-2 text-gray-800">
-                            {history.date}
-                          </td>
-                          <td class="py-3 pr-2">
-                            {#if history.documents && history.documents.length > 0}
-                              <div class="flex flex-wrap gap-2">
-                                {#each history.documents as doc}
-                                  <a href={doc.url} target="_blank" class="text-amber-600 hover:text-amber-800 underline text-sm">
-                                    {doc.name}
-                                  </a>
-                                {/each}
-                              </div>
-                            {:else}
-                              <span class="text-gray-400 text-sm">No documents</span>
-                            {/if}
+                        <tr>
+                          <td class="py-3">{index + 1}</td>
+                          <td class="py-3">{history.date}</td>
+                          <td class="py-3">
+                            <div class="space-y-1">
+                              {#each history.documents as doc}
+                                <a href={doc.url} class="text-amber-600 hover:text-amber-800 underline block">
+                                  {doc.name}
+                                </a>
+                              {/each}
+                            </div>
                           </td>
                         </tr>
                       {/each}
-                      
-                      {#if updateHistory.length === 0}
-                        <tr>
-                          <td colspan="3" class="py-12 text-center text-gray-400 text-sm italic">
-                            No update history available
-                          </td>
-                        </tr>
-                      {/if}
                     </tbody>
                   </table>
                 </div>
@@ -1135,4 +1113,4 @@
       </div>
     </div>
   </main>
-</div>  
+</div>
