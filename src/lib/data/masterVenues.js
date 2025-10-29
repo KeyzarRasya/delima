@@ -1,3 +1,4 @@
+// src/lib/data/masterVenues.js
 // Master Venue Data
 // Each venue has associated pax numbers and prices
 // The pax numbers here reference the masterPax data
@@ -49,6 +50,11 @@ export function getVenueByName(venueName) {
 export function getAvailablePaxForVenue(venueName) {
 	const venue = getVenueByName(venueName);
 	return venue ? venue.paxPrices.map((pp) => pp.pax) : [];
+}
+
+// Helper function to get all available pax for a venue (alias for compatibility)
+export function getPaxForVenue(venueName) {
+	return getAvailablePaxForVenue(venueName);
 }
 
 // Helper function to check if venue has specific pax
