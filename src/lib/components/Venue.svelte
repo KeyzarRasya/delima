@@ -1,31 +1,9 @@
 <script>
-	let venueList = [
-		{
-			id: 1,
-			venue: 'Studio Kencana',
-			paxPrices: [
-				{ paxId: 1, pax: 200, price: 50000000 },
-				{ paxId: 2, pax: 400, price: 75000000 }
-			]
-		},
-		{
-			id: 2,
-			venue: 'Grand Ballroom',
-			paxPrices: [
-				{ paxId: 3, pax: 500, price: 90000000 },
-				{ paxId: 4, pax: 600, price: 110000000 }
-			]
-		}
-	];
+	import { masterVenues } from '$lib/data/masterVenues.js';
+	import { masterPax } from '$lib/data/masterPax.js';
 
-	// Available pax from Pax menu
-	let availablePax = [
-		{ id: 1, pax: 200 },
-		{ id: 2, pax: 400 },
-		{ id: 3, pax: 500 },
-		{ id: 4, pax: 600 },
-		{ id: 5, pax: 800 }
-	];
+	let venueList = [...masterVenues];
+	let availablePax = [...masterPax];
 
 	let showAddModal = false;
 	let showEditModal = false;
@@ -34,6 +12,14 @@
 		venue: '',
 		paxPrices: []
 	};
+
+	function formatCurrency(amount) {
+		return new Intl.NumberFormat('id-ID', {
+			style: 'currency',
+			currency: 'IDR',
+			minimumFractionDigits: 0
+		}).format(amount);
+	}
 
 	function openAddModal() {
 		showAddModal = true;
@@ -126,33 +112,31 @@
 
 	function saveEditVenue() {
 		if (editingVenue) {
-			venueList = venueList.map((v) => (v.id === editingVenue.id ? editingVenue : v));
+			venueList = venueList.map((v) =>
+				v.id === editingVenue.id
+					? {
+							...editingVenue,
+							paxPrices: editingVenue.paxPrices.map((pp) => ({
+								paxId: pp.paxId,
+								pax: pp.pax,
+								price: pp.price
+							}))
+						}
+					: v
+			);
 			closeEditModal();
 		}
 	}
-
-	function formatCurrency(value) {
-		return new Intl.NumberFormat('id-ID', {
-			style: 'currency',
-			currency: 'IDR',
-			minimumFractionDigits: 0
-		}).format(value);
-	}
 </script>
 
-<div class="bg-white rounded-lg shadow">
-	<div class="p-6">
-		<h2 class="text-2xl font-bold text-gray-800 mb-6">Venue Management</h2>
+<div>
+	<h2 class="text-2xl font-bold text-gray-800 mb-6">Venue Management</h2>
 
+	<div class="bg-white rounded-lg shadow-lg overflow-hidden">
 		<div class="overflow-x-auto">
 			<table class="min-w-full divide-y divide-gray-200">
 				<thead class="bg-gray-50">
 					<tr>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-						>
-							No
-						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
@@ -161,31 +145,25 @@
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Pax
+							Number of Pax
 						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Harga
+							Price
 						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Aksi
+							Actions
 						</th>
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
-					{#each venueList as venue, venueIndex}
+					{#each venueList as venue}
 						{#each venue.paxPrices as paxPrice, paxIndex}
-							<tr class="hover:bg-gray-50">
+							<tr>
 								{#if paxIndex === 0}
-									<td
-										class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-										rowspan={venue.paxPrices.length}
-									>
-										{venueIndex + 1}
-									</td>
 									<td
 										class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
 										rowspan={venue.paxPrices.length}
@@ -250,7 +228,6 @@
 	</div>
 </div>
 
-<!-- Add Venue Modal -->
 {#if showAddModal}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 		<div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
@@ -282,10 +259,7 @@
 				<div>
 					<div class="flex justify-between items-center mb-3">
 						<label class="block text-sm font-medium text-gray-700">Pax and Prices</label>
-						<button
-							on:click={addPaxPrice}
-							class="text-sm text-amber-600 hover:text-amber-700"
-						>
+						<button on:click={addPaxPrice} class="text-sm text-amber-600 hover:text-amber-700">
 							+ Add Pax
 						</button>
 					</div>
@@ -356,7 +330,6 @@
 	</div>
 {/if}
 
-<!-- Edit Venue Modal -->
 {#if showEditModal && editingVenue}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 		<div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
@@ -397,7 +370,7 @@
 					</div>
 
 					{#if editingVenue.paxPrices.length === 0}
-						<p class="text-sm text-gray-500 italic">No pax added yet. Click "Add Pax" to start.</p>
+						<p class="text-sm text-gray-500 italic">No pax added yet.</p>
 					{:else}
 						<div class="space-y-3">
 							{#each editingVenue.paxPrices as paxPrice, index}
@@ -405,13 +378,15 @@
 									<div class="flex-1">
 										<label class="block text-xs font-medium text-gray-700 mb-1">Pax</label>
 										<select
-											value={paxPrice.paxId}
+											bind:value={paxPrice.tempPaxSelect}
 											on:change={(e) => updatePaxSelectionInEdit(index, e.target.value)}
 											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
 										>
 											<option value="">Select Pax</option>
 											{#each availablePax as pax}
-												<option value={pax.id}>{pax.pax} Orang</option>
+												<option value={pax.id} selected={pax.pax === paxPrice.pax}
+													>{pax.pax} Orang</option
+												>
 											{/each}
 										</select>
 									</div>

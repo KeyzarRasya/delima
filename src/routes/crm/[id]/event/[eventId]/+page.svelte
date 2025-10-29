@@ -2,27 +2,39 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import { masterVenues, getPaxForVenue, venueHasPax } from '$lib/data/masterVenues.js';
+  import { masterPax } from '$lib/data/masterPax.js';
+  import { crmContacts } from '$lib/data/crmData.js';
+  import { 
+    dekorasiVendors, 
+    riasBusanaVendors, 
+    photoVideoVendors, 
+    entertainmentVendors,
+    weddingOrganizerVendors 
+  } from '$lib/data/vendorData.js';
+  import { mcData, upacaraAdatData, intagiriData, tarianData } from '$lib/data/pendukungData.js';
+  import { buffetData, gubukanBasicData } from '$lib/data/cateringData.js';
   
-  $: contactId = $page.params.id;
+  $: contactId = parseInt($page.params.id);
   $: eventId = $page.params.eventId;
   
-  // Active tab is now dynamic based on selected pax
+  $: contactData = crmContacts.find(c => c.id === contactId);
+  $: eventFromData = contactData?.events?.find(e => e.id === eventId);
+  
   let activeTab = '';
   
-  const venueOptions = ['Studio Kencana', 'Grand Ballroom', 'Royal Hall', 'Paradise Garden'];
-  const paxOptions = ['200', '400', '600', '800', '1000'];
-  
   let eventData = {
-    name: 'Akad - Juni & Hermansyah',
-    eventDate: '',
-    selectedVenues: [],
-    selectedPax: []
+    name: eventFromData?.name || 'Akad - Juni & Hermansyah',
+    eventDate: eventFromData?.date || '',
+    selectedVenues: eventFromData?.selectedVenues?.map(v => v.venueName) || [],
+    selectedPax: eventFromData?.selectedVenues?.[0]?.selectedPax?.map(p => p.paxNumber) || []
   };
   
   let tempVenue = '';
   let tempPax = '';
   
-  // Reactive: Update active tab when selected pax changes
+  $: availablePaxForSelectedVenue = tempVenue ? getPaxForVenue(tempVenue) : [];
+  
   $: {
     if (eventData.selectedPax.length > 0 && !eventData.selectedPax.includes(activeTab)) {
       activeTab = eventData.selectedPax[0];
@@ -31,7 +43,6 @@
     }
   }
   
-  // Auto-save venue when selected
   $: {
     if (tempVenue && !eventData.selectedVenues.includes(tempVenue)) {
       eventData.selectedVenues = [...eventData.selectedVenues, tempVenue];
@@ -39,55 +50,50 @@
     }
   }
   
-  // Auto-save pax when selected
   $: {
-    if (tempPax && !eventData.selectedPax.includes(tempPax)) {
-      eventData.selectedPax = [...eventData.selectedPax, tempPax];
+    if (tempPax && !eventData.selectedPax.includes(parseInt(tempPax))) {
+      eventData.selectedPax = [...eventData.selectedPax, parseInt(tempPax)];
       tempPax = '';
     }
   }
   
-  // Buffet data
-  let buffetType = '';
-  let buffetQuantity = '';
-  let buffetItems = [
-    { category: '', menu: '', notes: '' }
-  ];
+  $: venuesForDisplay = masterVenues
+    .filter(venue => 
+      venue.paxPrices.some(pp => eventData.selectedPax.includes(pp.pax))
+    )
+    .map(venue => ({
+      ...venue,
+      paxPrices: venue.paxPrices.filter(pp => eventData.selectedPax.includes(pp.pax))
+    }));
   
-  // Gubukan data
-  let gubukanItems = [
-    { category: '', menu: '', quantity: '', notes: '' }
-  ];
+  let paxData = {};
   
-  // Dekorasi data
-  let dekorasiVendor = '';
-  let dekorasiItems = [
-    { item: '', quantity: '', notes: '' }
-  ];
-  
-  // Rias dan Busana data
-  let riasBusanaVendor = '';
-  let riasBusanaItems = [
-    { item: '', quantity: '', notes: '' }
-  ];
-  
-  // Photo dan Video data
-  let photoVideoVendor = '';
-  let photoVideoItems = [
-    { item: '', quantity: '', notes: '' }
-  ];
-  
-  // Entertainment data
-  let entertainmentVendor = '';
-  
-  // Wedding Organizer data
-  let weddingOrganizerVendor = '';
-  
-  // Pendukung data
-  let pendukungMc = '';
-  let pendukungUpacaraAdat = '';
-  let pendukungIntegiri = '';
-  let pendukungTarian = '';
+  $: {
+    eventData.selectedPax.forEach(pax => {
+      if (!paxData[pax]) {
+        paxData[pax] = {
+          buffetType: '',
+          buffetQuantity: pax,
+          buffetItems: [{ category: '', menu: '', notes: '' }],
+          gubukanItems: [{ category: '', menu: '', quantity: '', notes: '' }],
+          dekorasiVendor: '',
+          dekorasiItems: [{ item: '', quantity: '', notes: '' }],
+          riasBusanaVendor: '',
+          riasBusanaItems: [{ item: '', quantity: '', notes: '' }],
+          photoVideoVendor: '',
+          photoVideoItems: [{ item: '', quantity: '', notes: '' }],
+          entertainmentVendor: '',
+          entertainmentType: '',
+          weddingOrganizerVendor: '',
+          weddingOrganizerPackage: '',
+          pendukungMc: '',
+          pendukungUpacaraAdat: '',
+          pendukungIntagiri: '',
+          pendukungTarian: ''
+        };
+      }
+    });
+  }
   
   function removeVenue(venue) {
     eventData.selectedVenues = eventData.selectedVenues.filter(v => v !== venue);
@@ -95,58 +101,47 @@
   
   function removePax(pax) {
     eventData.selectedPax = eventData.selectedPax.filter(p => p !== pax);
+    delete paxData[pax];
   }
   
-  function handlePrint() {
-    window.print();
+  function addBuffetRow(pax) {
+    paxData[pax].buffetItems = [...paxData[pax].buffetItems, { category: '', menu: '', notes: '' }];
   }
   
-  function proceedToContract() {
-    goto(`/crm/${contactId}/event/${eventId}/contract`);
+  function removeBuffetRow(pax, index) {
+    paxData[pax].buffetItems = paxData[pax].buffetItems.filter((_, i) => i !== index);
+  }
+  
+  function addGubukanRow(pax) {
+    paxData[pax].gubukanItems = [...paxData[pax].gubukanItems, { category: '', menu: '', quantity: '', notes: '' }];
+  }
+  
+  function removeGubukanRow(pax, index) {
+    paxData[pax].gubukanItems = paxData[pax].gubukanItems.filter((_, i) => i !== index);
+  }
+  
+  function addDekorasiRow(pax) {
+    paxData[pax].dekorasiItems = [...paxData[pax].dekorasiItems, { item: '', quantity: '', notes: '' }];
+  }
+  
+  function removeDekorasiRow(pax, index) {
+    paxData[pax].dekorasiItems = paxData[pax].dekorasiItems.filter((_, i) => i !== index);
+  }
+  
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
   }
   
   function goBack() {
     goto(`/crm/${contactId}`);
   }
   
-  function addBuffetRow() {
-    buffetItems = [...buffetItems, { category: '', menu: '', quantity: '', notes: '' }];
-  }
-  
-  function removeBuffetRow(index) {
-    buffetItems = buffetItems.filter((_, i) => i !== index);
-  }
-  
-  function addGubukanRow() {
-    gubukanItems = [...gubukanItems, { category: '', menu: '', quantity: '', notes: '' }];
-  }
-  
-  function removeGubukanRow(index) {
-    gubukanItems = gubukanItems.filter((_, i) => i !== index);
-  }
-  
-  function addDekorasiRow() {
-    dekorasiItems = [...dekorasiItems, { item: '', quantity: '', notes: '' }];
-  }
-  
-  function removeDekorasiRow(index) {
-    dekorasiItems = dekorasiItems.filter((_, i) => i !== index);
-  }
-  
-  function addRiasBusanaRow() {
-    riasBusanaItems = [...riasBusanaItems, { item: '', quantity: '', notes: '' }];
-  }
-  
-  function removeRiasBusanaRow(index) {
-    riasBusanaItems = riasBusanaItems.filter((_, i) => i !== index);
-  }
-  
-  function addPhotoVideoRow() {
-    photoVideoItems = [...photoVideoItems, { item: '', quantity: '', notes: '' }];
-  }
-  
-  function removePhotoVideoRow(index) {
-    photoVideoItems = photoVideoItems.filter((_, i) => i !== index);
+  function proceedToContract() {
+    goto(`/crm/${contactId}/event/${eventId}/contract`);
   }
 </script>
 
@@ -192,8 +187,8 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <option value="">Select venue</option>
-                {#each venueOptions as venue}
-                  <option value={venue}>{venue}</option>
+                {#each masterVenues as venue}
+                  <option value={venue.venue}>{venue.venue}</option>
                 {/each}
               </select>
             </div>
@@ -219,8 +214,8 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <option value="">Select pax</option>
-                {#each paxOptions as pax}
-                  <option value={pax}>{pax} Pax</option>
+                {#each masterPax as pax}
+                  <option value={pax.pax}>{pax.pax} Pax</option>
                 {/each}
               </select>
             </div>
@@ -251,479 +246,321 @@
                 </button>
               {/each}
             </nav>
-          {:else}
-            <div class="py-4 text-center text-gray-400 text-sm">
-              Please select Number of Pax to view tabs
-            </div>
           {/if}
         </div>
         
-        {#if eventData.selectedPax.length > 0 && activeTab}
-        <div class="space-y-8">
-          <section>
-            <h2 class="text-lg font-bold text-gray-800 mb-4">Venue</h2>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Venue</label>
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select venue</option>
-                  {#each venueOptions as venue}
-                    <option value={venue}>{venue}</option>
-                  {/each}
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Harga</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500" />
-              </div>
-            </div>
-          </section>
-          
-          <section>
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Buffet</h2>
-              <div class="space-y-2">
+        {#if activeTab && paxData[activeTab]}
+          <div class="space-y-8">
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Buffet</h2>
+              <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-sm text-gray-600 mb-1">Type</label>
-                  <select bind:value={buffetType} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select type</option>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="deluxe">Deluxe</option>
+                  <select
+                    bind:value={paxData[activeTab].buffetType}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select buffet type</option>
+                    {#each buffetData as buffet}
+                      <option value={buffet.tipe}>{buffet.tipe}</option>
+                    {/each}
                   </select>
                 </div>
                 <div>
                   <label class="block text-sm text-gray-600 mb-1">Quantity</label>
                   <input
-                    type="text"
-                    bind:value={buffetQuantity}
+                    type="number"
+                    bind:value={paxData[activeTab].buffetQuantity}
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
               </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full">
-                <thead>
-                  <tr class="border-b">
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
-                    <th class="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each buffetItems as item, index}
-                    <tr>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.category}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.menu}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.notes}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="py-2">
-                        {#if buffetItems.length > 1}
-                          <button
-                            on:click={() => removeBuffetRow(index)}
-                            class="text-red-500 hover:text-red-700"
-                          >
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Buffet - Pendukung</h2>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="border-b">
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
+                      <th class="w-12"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each paxData[activeTab].buffetItems as item, index}
+                      <tr>
+                        <td class="pr-2 py-2">
+                          <input
+                            type="text"
+                            bind:value={item.category}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </td>
+                        <td class="pr-2 py-2">
+                          <input
+                            type="text"
+                            bind:value={item.menu}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </td>
+                        <td class="pr-2 py-2">
+                          <input
+                            type="text"
+                            bind:value={item.notes}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </td>
+                        <td class="py-2">
+                          <button on:click={() => removeBuffetRow(activeTab, index)} class="text-red-500 hover:text-red-700">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
-                        {/if}
-                      </td>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+                <button on:click={() => addBuffetRow(activeTab)} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">
+                  Add row
+                </button>
+              </div>
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Gubukan</h2>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="border-b">
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
+                      <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
+                      <th class="w-12"></th>
                     </tr>
-                  {/each}
-                </tbody>
-              </table>
-              <button
-                on:click={addBuffetRow}
-                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
-              >
-                Add row
-              </button>
-            </div>
-          </section>
-          
-          <section>
-            <h2 class="text-lg font-bold text-gray-800 mb-4">Gubukan</h2>
-            <div class="overflow-x-auto">
-              <table class="min-w-full">
-                <thead>
-                  <tr class="border-b">
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Category</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Menu</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
-                    <th class="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each gubukanItems as item, index}
-                    <tr>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.category}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.menu}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.quantity}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.notes}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="py-2">
-                        {#if gubukanItems.length > 1}
-                          <button
-                            on:click={() => removeGubukanRow(index)}
-                            class="text-red-500 hover:text-red-700"
+                  </thead>
+                  <tbody>
+                    {#each paxData[activeTab].gubukanItems as item, index}
+                      <tr>
+                        <td class="pr-2 py-2">
+                          <select
+                            bind:value={item.category}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                           >
+                            <option value="">Select category</option>
+                            {#each [...new Set(gubukanBasicData.map(g => g.category))] as cat}
+                              <option value={cat}>{cat}</option>
+                            {/each}
+                          </select>
+                        </td>
+                        <td class="pr-2 py-2">
+                          <select
+                            bind:value={item.menu}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="">Select menu</option>
+                            {#each gubukanBasicData.filter(g => g.category === item.category) as menuItem}
+                              <option value={menuItem.item}>{menuItem.item}</option>
+                            {/each}
+                          </select>
+                        </td>
+                        <td class="pr-2 py-2">
+                          <input
+                            type="number"
+                            bind:value={item.quantity}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </td>
+                        <td class="pr-2 py-2">
+                          <input
+                            type="text"
+                            bind:value={item.notes}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </td>
+                        <td class="py-2">
+                          <button on:click={() => removeGubukanRow(activeTab, index)} class="text-red-500 hover:text-red-700">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-              <button
-                on:click={addGubukanRow}
-                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
-              >
-                Add row
-              </button>
-            </div>
-          </section>
-          
-          <section>
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Dekorasi</h2>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600">Vendor</label>
-                <select bind:value={dekorasiVendor} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select vendor</option>
-                  <option value="vendor1">Vendor 1</option>
-                  <option value="vendor2">Vendor 2</option>
-                  <option value="vendor3">Vendor 3</option>
-                </select>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+                <button on:click={() => addGubukanRow(activeTab)} class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm">
+                  Add row
+                </button>
               </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full">
-                <thead>
-                  <tr class="border-b">
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Item</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
-                    <th class="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each dekorasiItems as item, index}
-                    <tr>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.item}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.quantity}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.notes}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="py-2">
-                        {#if dekorasiItems.length > 1}
-                          <button
-                            on:click={() => removeDekorasiRow(index)}
-                            class="text-red-500 hover:text-red-700"
-                          >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-              <button
-                on:click={addDekorasiRow}
-                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
-              >
-                Add row
-              </button>
-            </div>
-          </section>
-          
-          <section>
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Rias dan Busana</h2>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600">Vendor</label>
-                <select bind:value={riasBusanaVendor} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select vendor</option>
-                  <option value="vendor1">Vendor 1</option>
-                  <option value="vendor2">Vendor 2</option>
-                  <option value="vendor3">Vendor 3</option>
-                </select>
-              </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full">
-                <thead>
-                  <tr class="border-b">
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Item</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
-                    <th class="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each riasBusanaItems as item, index}
-                    <tr>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.item}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.quantity}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.notes}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="py-2">
-                        {#if riasBusanaItems.length > 1}
-                          <button
-                            on:click={() => removeRiasBusanaRow(index)}
-                            class="text-red-500 hover:text-red-700"
-                          >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-              <button
-                on:click={addRiasBusanaRow}
-                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
-              >
-                Add row
-              </button>
-            </div>
-          </section>
-          
-          <section>
-            <div class="mb-4">
-              <h2 class="text-lg font-bold text-gray-800 mb-2">Photo dan Video</h2>
-              <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-600">Vendor</label>
-                <select bind:value={photoVideoVendor} class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select vendor</option>
-                  <option value="vendor1">Vendor 1</option>
-                  <option value="vendor2">Vendor 2</option>
-                  <option value="vendor3">Vendor 3</option>
-                </select>
-              </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full">
-                <thead>
-                  <tr class="border-b">
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Item</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Quantity</th>
-                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Notes</th>
-                    <th class="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each photoVideoItems as item, index}
-                    <tr>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.item}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.quantity}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="pr-2 py-2">
-                        <input
-                          type="text"
-                          bind:value={item.notes}
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        />
-                      </td>
-                      <td class="py-2">
-                        {#if photoVideoItems.length > 1}
-                          <button
-                            on:click={() => removePhotoVideoRow(index)}
-                            class="text-red-500 hover:text-red-700"
-                          >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-              <button
-                on:click={addPhotoVideoRow}
-                class="mt-2 text-amber-700 hover:text-amber-800 font-medium text-sm"
-              >
-                Add row
-              </button>
-            </div>
-          </section>
-          
-          <section>
-            <h2 class="text-lg font-bold text-gray-800 mb-4">Entertainment & Wedding Organizer</h2>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Entertainment</label>
-                <select bind:value={entertainmentVendor} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select vendor</option>
-                  <option value="vendor1">Vendor 1</option>
-                  <option value="vendor2">Vendor 2</option>
-                  <option value="vendor3">Vendor 3</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Wedding Organizer</label>
-                <select bind:value={weddingOrganizerVendor} class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="">Select vendor</option>
-                  <option value="vendor1">Vendor 1</option>
-                  <option value="vendor2">Vendor 2</option>
-                  <option value="vendor3">Vendor 3</option>
-                </select>
-              </div>
-            </div>
-          </section>
-          
-          <section>
-            <h2 class="text-lg font-bold text-gray-800 mb-4">Pendukung</h2>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">MC</label>
-                <input
-                  type="text"
-                  bind:value={pendukungMc}
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Dekorasi</h2>
+              <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Vendor</label>
+                <select
+                  bind:value={paxData[activeTab].dekorasiVendor}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                >
+                  <option value="">Select vendor</option>
+                  {#each dekorasiVendors as vendor}
+                    <option value={vendor.name}>{vendor.name}</option>
+                  {/each}
+                </select>
               </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Upacara Adat</label>
-                <input
-                  type="text"
-                  bind:value={pendukungUpacaraAdat}
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Rias dan Busana</h2>
+              <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Vendor</label>
+                <select
+                  bind:value={paxData[activeTab].riasBusanaVendor}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                >
+                  <option value="">Select vendor</option>
+                  {#each riasBusanaVendors as vendor}
+                    <option value={vendor.name}>{vendor.name}</option>
+                  {/each}
+                </select>
               </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Integiri</label>
-                <input
-                  type="text"
-                  bind:value={pendukungIntegiri}
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Photo dan Video</h2>
+              <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Vendor</label>
+                <select
+                  bind:value={paxData[activeTab].photoVideoVendor}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                >
+                  <option value="">Select vendor</option>
+                  {#each photoVideoVendors as vendor}
+                    <option value={vendor.name}>{vendor.name}</option>
+                  {/each}
+                </select>
               </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Tarian</label>
-                <input
-                  type="text"
-                  bind:value={pendukungTarian}
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Entertainment</h2>
+              <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Vendor</label>
+                <select
+                  bind:value={paxData[activeTab].entertainmentVendor}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                >
+                  <option value="">Select vendor</option>
+                  {#each entertainmentVendors as vendor}
+                    <option value={vendor.name}>{vendor.name}</option>
+                  {/each}
+                </select>
               </div>
-            </div>
-          </section>
-          
-          <div class="flex justify-end gap-2 pt-6 border-t border-gray-200">
-            <button
-              on:click={handlePrint}
-              class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Print
-            </button>
-            <button
-              on:click={proceedToContract}
-              class="px-6 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
-            >
-              Proceed to Contract
-            </button>
+            </section>
+            
+            <section>
+              <h2 class="text-lg font-bold text-gray-800 mb-4">Pendukung</h2>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1">MC</label>
+                  <select
+                    bind:value={paxData[activeTab].pendukungMc}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select MC</option>
+                    {#each mcData as mc}
+                      <option value={mc.name}>{mc.name}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1">Upacara Adat</label>
+                  <select
+                    bind:value={paxData[activeTab].pendukungUpacaraAdat}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select ceremony</option>
+                    {#each upacaraAdatData as upacara}
+                      <option value={upacara.name}>{upacara.name}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1">Intagiri</label>
+                  <select
+                    bind:value={paxData[activeTab].pendukungIntagiri}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select intagiri</option>
+                    {#each intagiriData as intagiri}
+                      <option value={intagiri.name}>{intagiri.name}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1">Tarian</label>
+                  <select
+                    bind:value={paxData[activeTab].pendukungTarian}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select dance</option>
+                    {#each tarianData as tarian}
+                      <option value={tarian.name}>{tarian.name}</option>
+                    {/each}
+                  </select>
+                </div>
+              </div>
+            </section>
           </div>
-        </div>
         {/if}
+        
+        {#if eventData.selectedPax.length > 0}
+          <div class="mt-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Venue Prices</h2>
+            <div class="overflow-x-auto">
+              <table class="min-w-full">
+                <thead>
+                  <tr class="border-b">
+                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Venue</th>
+                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Pax</th>
+                    <th class="text-left text-sm font-medium text-gray-600 pb-2">Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each venuesForDisplay as venue}
+                    {#each venue.paxPrices as paxPrice}
+                      <tr>
+                        <td class="pr-2 py-2 text-sm">{venue.venue}</td>
+                        <td class="pr-2 py-2 text-sm">{paxPrice.pax} Pax</td>
+                        <td class="pr-2 py-2 text-sm">{formatCurrency(paxPrice.price)}</td>
+                      </tr>
+                    {/each}
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {/if}
+        
+        <div class="flex justify-end gap-4 mt-8">
+          <button
+            on:click={goBack}
+            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            on:click={proceedToContract}
+            class="px-6 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+          >
+            Proceed to Contract
+          </button>
+        </div>
       </div>
     </div>
   </main>
