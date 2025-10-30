@@ -32,9 +32,7 @@
 	function togglePricelist() {
 		isPricelistOpen = !isPricelistOpen;
 		if (isPricelistOpen && !$page.url.pathname.startsWith('/crm')) {
-			// Already on pricelist page, just toggle
 		} else if (isPricelistOpen) {
-			// Navigate to pricelist from CRM
 			goto('/');
 		}
 	}
@@ -48,9 +46,15 @@
 		goto('/');
 	}
 
+	function selectContactManagement() {
+		dispatch('menuChange', 'contact-management');
+		goto('/');
+	}
+
 	$: currentPath = $page.url.pathname;
 	$: isCrmPage = currentPath.startsWith('/crm');
 	$: isMasterDataPage = activeMenu === 'venue' || activeMenu === 'pax';
+	$: isContactManagementPage = activeMenu === 'contact-management';
 </script>
 
 <aside class="w-64 bg-white shadow-lg h-screen overflow-y-auto">
@@ -64,7 +68,8 @@
 			<li>
 				<button
 					class="w-full text-left px-4 py-3 rounded-lg transition-colors duration-200 font-semibold flex items-center justify-between {!isCrmPage &&
-					!isMasterDataPage
+					!isMasterDataPage &&
+					!isContactManagementPage
 						? 'bg-amber-100 text-amber-800'
 						: 'text-gray-700 hover:bg-gray-100'}"
 					on:click={togglePricelist}
@@ -147,6 +152,18 @@
 						{/each}
 					</ul>
 				{/if}
+			</li>
+
+			<li>
+				<button
+					class="w-full text-left px-4 py-3 rounded-lg transition-colors duration-200 font-semibold {isContactManagementPage &&
+					!isCrmPage
+						? 'bg-amber-100 text-amber-800'
+						: 'text-gray-700 hover:bg-gray-100'}"
+					on:click={selectContactManagement}
+				>
+					Contact Management
+				</button>
 			</li>
 
 			<li>

@@ -5,15 +5,14 @@
   
   let contacts = crmContacts.map(contact => ({
     ...contact,
-    stage: 'leads'
+    stage: 'assigned'
   }));
   
   const stages = [
-    { id: 'leads', title: 'Leads', color: 'bg-blue-100' },
-    { id: 'qualified', title: 'Qualified', color: 'bg-yellow-100' },
-    { id: 'proposal', title: 'Proposal', color: 'bg-purple-100' },
-    { id: 'negotiation', title: 'Negotiation', color: 'bg-orange-100' },
-    { id: 'closed', title: 'Closed Won', color: 'bg-green-100' }
+    { id: 'assigned', title: 'Assigned', color: 'bg-blue-100' },
+    { id: 'contacted', title: 'Contacted', color: 'bg-yellow-100' },
+    { id: 'final', title: 'Finalization', color: 'bg-purple-100' },
+    { id: 'techmeet', title: 'Technical Meeting', color: 'bg-orange-100' },
   ];
   
   function getContactsByStage(stageId) {
