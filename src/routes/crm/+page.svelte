@@ -1,7 +1,10 @@
 <script>
   import Sidebar from '$lib/components/Sidebar.svelte';
+  import AddContactPopup from '$lib/components/AddContactPopup.svelte';
   import { goto } from '$app/navigation';
   import { crmContacts } from '$lib/data/crmData.js';
+  
+  let showAddContactPopup = false;
   
   let contacts = crmContacts.map(contact => ({
     ...contact,
@@ -23,17 +26,27 @@
     goto(`/crm/${contactId}`);
   }
   
-  function addNewContact() {
+  function openAddContactPopup() {
+    showAddContactPopup = true;
+  }
+  
+  function closeAddContactPopup() {
+    showAddContactPopup = false;
+  }
+  
+  function handleContactSave(contactData) {
     const newId = Math.max(...contacts.map(c => c.id), 0) + 1;
-    contacts = [...contacts, {
+    const newContact = {
       id: newId,
-      name: 'New Contact',
-      company: '',
-      phone: '',
-      salesperson: 'Administrator',
-      stage: 'leads',
+      name: contactData.name,
+      company: contactData.company,
+      phone: contactData.phone,
+      salesperson: contactData.salesperson,
+      stage: 'assigned',
       events: []
-    }];
+    };
+    
+    contacts = [...contacts, newContact];
   }
   
   let draggedContact = null;
@@ -66,7 +79,7 @@
     <div class="mb-6 flex justify-between items-center">
       <h1 class="text-3xl font-bold text-gray-800">CRM Pipeline</h1>
       <button
-        on:click={addNewContact}
+        on:click={openAddContactPopup}
         class="px-6 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
       >
         Add New Contact
@@ -114,3 +127,10 @@
     </div>
   </main>
 </div>
+
+{#if showAddContactPopup}
+  <AddContactPopup
+    on:close={closeAddContactPopup}
+    on:save={(e) => handleContactSave(e.detail)}
+  />
+{/if}
