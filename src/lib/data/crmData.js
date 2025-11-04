@@ -1,149 +1,81 @@
-// CRM Event Data
-// Sample events showing complete back-to-back relationships
-// between venues, pax, buffet, gubukan, vendors, and all other services
+// CRM Contacts Data with Relational Structure
+// All fields use IDs to reference master data
 
-import { masterPax } from './masterPax.js';
 import { masterVenues } from './masterVenues.js';
+import { salespersonData } from './salespersonData.js';
+import { dekorasiVendors, riasBusanaVendors, photoVideoVendors, entertainmentVendors, weddingOrganizerVendors } from './vendorData.js';
+import { mcData, upacaraAdatData, intagiriData, tarianData } from './pendukungData.js';
 
 export const crmContacts = [
 	{
 		id: 1,
-		name: 'Juni & Hermansyah',
-		company: 'Tech Solutions Inc',
-		phone: '08999415758',
-		salesperson: 'Administrator',
+		opportunityName: 'Wedding Juni & Hermansyah',
+		salespersonId: 1,
+		contacts: [
+			{ name: 'Juni', phone: '08999415758', keterangan: 'Bride' },
+			{ name: 'Hermansyah', phone: '08999415759', keterangan: 'Groom' }
+		],
 		events: [
 			{
 				id: 'evt-001',
-				name: 'Akad - Juni & Hermansyah',
+				name: 'Akad Nikah',
 				date: '2025-06-15',
-				status: 'Planning',
-				// Selected venues - must exist in masterVenues
+				status: 'In Progress',
 				selectedVenues: [
 					{
+						venueId: 1,
 						venueName: 'Studio Kencana',
-						// Only pax that exist in Studio Kencana's paxPrices can be selected
 						selectedPax: [
 							{
-								paxNumber: 200, // This exists in Studio Kencana's paxPrices
-								// For this pax, we have:
-								buffet: {
-									type: 'Buffet Premium',
-									quantity: 200,
-									items: [
-										{ category: 'Appetizer', menu: 'International Salad, Cream Soup' },
-										{ category: 'Main Course', menu: 'Nasi Kebuli, Beef Tenderloin, Grilled Salmon' },
-										{ category: 'Dessert', menu: 'Cake Selection, Ice Cream Bar' }
-									]
-								},
-								// Buffet pendukung - total must equal or relate to paxNumber (200)
-								buffetPendukung: {
-									items: [
-										{ category: 'Extra Dessert', menu: 'French Pastries', quantity: 50, notes: 'For VIP guests' },
-										{ category: 'Extra Beverage', menu: 'Fresh Juice Station', quantity: 200, notes: 'For all guests' }
-									],
-									totalQuantity: 250 // Can exceed pax for extras
-								},
-								gubukan: {
-									items: [
-										{ category: 'Appetizer', menu: 'Spring Roll', quantity: 100, notes: 'Half of guests' },
-										{ category: 'Main Course', menu: 'Nasi Goreng Spesial', quantity: 200, notes: 'All guests' },
-										{ category: 'Dessert', menu: 'Es Campur', quantity: 200, notes: 'All guests' }
-									],
-									totalQuantity: 500 // Total items can exceed pax
-								},
+								paxNumber: 200,
+								venueId: 1,
+								buffetType: 'Buffet Premium',
+								buffetQuantity: 200,
+								buffetItems: [
+									{ menu: 'Sop Buntut', quantity: 200, notes: '' },
+									{ menu: 'Nasi Goreng Spesial', quantity: 200, notes: '' }
+								],
+								totalQuantity: 200,
 								dekorasi: {
-									vendor: 'Elegant Decoration',
+									vendorId: 3,
+									vendor: 'Paradise Decor',
 									items: [
-										{ item: 'Dekorasi Pelaminan Modern', quantity: 1, notes: 'Main stage' },
-										{ item: 'Dekorasi Jalan Masuk', quantity: 1, notes: 'Entrance decoration' },
-										{ item: 'Dekorasi Meja Tamu', quantity: 20, notes: '20 tables for 200 pax' }
+										{ item: 'Dekorasi Outdoor Complete', quantity: 1, notes: '' }
 									]
 								},
 								riasBusana: {
+									vendorId: 1,
 									vendor: 'Sari Makeup Artist',
 									items: [
-										{ item: 'Paket Rias Pengantin Akad', quantity: 1, notes: 'Bride and groom' },
-										{ item: 'Busana Pengantin Adat Jawa', quantity: 1, notes: 'Traditional attire' }
+										{ item: 'Paket Rias Pengantin Akad', quantity: 1, notes: '' }
 									]
 								},
 								photoVideo: {
-									vendor: 'Cinematic Wedding',
-									items: [
-										{ item: 'Paket Foto + Video Complete', quantity: 1, notes: 'Full coverage' },
-										{ item: 'Album Premium', quantity: 2, notes: 'For both families' }
-									]
-								},
-								entertainment: {
-									vendor: 'Harmony Entertainment',
-									type: 'Acoustic Band'
-								},
-								weddingOrganizer: {
-									vendor: 'Perfect Wedding Organizer',
-									package: 'Paket Standard'
-								},
-								pendukung: {
-									mc: 'MC Sarah Wijaya',
-									upacaraAdat: 'Upacara Adat Jawa',
-									intagiri: 'Intagiri Traditional - Standard',
-									tarian: 'Tari Serimpi'
-								}
-							},
-							{
-								paxNumber: 400, // This also exists in Studio Kencana's paxPrices
-								buffet: {
-									type: 'Buffet Luxury',
-									quantity: 400,
-									items: [
-										{ category: 'Appetizer', menu: 'Caviar Station, Sushi Bar' },
-										{ category: 'Main Course', menu: 'Wagyu Beef, Lobster Thermidor' },
-										{ category: 'Dessert', menu: 'French Pastries, Chocolate Fountain' }
-									]
-								},
-								buffetPendukung: {
-									items: [
-										{ category: 'Premium Drinks', menu: 'Champagne Station', quantity: 400, notes: 'For all guests' }
-									],
-									totalQuantity: 400
-								},
-								gubukan: {
-									items: [
-										{ category: 'Main Course', menu: 'Ayam Bakar Taliwang', quantity: 400, notes: 'All guests' }
-									],
-									totalQuantity: 400
-								},
-								dekorasi: {
-									vendor: 'Royal Decoration',
-									items: [
-										{ item: 'Dekorasi Pelaminan Luxury', quantity: 1, notes: 'Premium stage' }
-									]
-								},
-								riasBusana: {
-									vendor: 'Glamour Bridal',
-									items: [
-										{ item: 'Paket Rias Pengantin Complete', quantity: 1, notes: 'Full package' }
-									]
-								},
-								photoVideo: {
+									vendorId: 1,
 									vendor: 'Royal Photography',
 									items: [
-										{ item: 'Paket Foto Premium', quantity: 1, notes: '' },
-										{ item: 'Paket Video Premium', quantity: 1, notes: '' }
+										{ item: 'Paket Foto Standard', quantity: 1, notes: '' }
 									]
 								},
 								entertainment: {
-									vendor: 'Prestige Entertainment',
-									type: 'Full Band'
+									vendorId: 3,
+									vendor: 'Joy Entertainment',
+									type: 'Acoustic Solo'
 								},
 								weddingOrganizer: {
-									vendor: 'Elite Wedding Planner',
-									package: 'Paket Complete'
+									vendorId: 3,
+									vendor: 'Dream Wedding Organizer',
+									package: 'Paket Minimalist'
 								},
 								pendukung: {
-									mc: 'MC Dedi Prasetyo',
-									upacaraAdat: 'Upacara Adat Jawa',
-									intagiri: 'Intagiri Traditional - Premium',
-									tarian: 'Tari Kecak'
+									mcId: 2,
+									mc: 'MC Sarah Wijaya',
+									upacaraAdatId: 4,
+									upacaraAdat: 'Upacara Adat Betawi',
+									intagiriId: 1,
+									intagiri: 'Intagiri Traditional - Basic',
+									tarianId: 5,
+									tarian: 'Tari Pendet'
 								}
 							}
 						]
@@ -152,226 +84,137 @@ export const crmContacts = [
 			},
 			{
 				id: 'evt-002',
-				name: 'Resepsi - Juni & Hermansyah',
+				name: 'Resepsi',
 				date: '2025-06-16',
 				status: 'Planning',
-				selectedVenues: [
-					{
-						venueName: 'Grand Ballroom',
-						selectedPax: [
-							{
-								paxNumber: 500,
-								buffet: {
-									type: 'Buffet Premium',
-									quantity: 500,
-									items: [
-										{ category: 'Appetizer', menu: 'International Salad, Cream Soup' },
-										{ category: 'Main Course', menu: 'Nasi Kebuli, Beef Tenderloin' },
-										{ category: 'Dessert', menu: 'Cake Selection' }
-									]
-								},
-								buffetPendukung: {
-									items: [
-										{ category: 'Extra Beverage', menu: 'Coffee & Tea Station', quantity: 500, notes: 'All guests' }
-									],
-									totalQuantity: 500
-								},
-								gubukan: {
-									items: [
-										{ category: 'Main Course', menu: 'Ikan Bakar Jimbaran', quantity: 500, notes: '' }
-									],
-									totalQuantity: 500
-								},
-								dekorasi: {
-									vendor: 'Paradise Decor',
-									items: [
-										{ item: 'Dekorasi Pelaminan Garden', quantity: 1, notes: '' }
-									]
-								},
-								riasBusana: {
-									vendor: 'Traditional Beauty',
-									items: [
-										{ item: 'Paket Rias Adat Sunda', quantity: 1, notes: '' }
-									]
-								},
-								photoVideo: {
-									vendor: 'Eternal Moments',
-									items: [
-										{ item: 'Paket Foto Luxury', quantity: 1, notes: '' }
-									]
-								},
-								entertainment: {
-									vendor: 'Joy Entertainment',
-									type: 'DJ + Singer'
-								},
-								weddingOrganizer: {
-									vendor: 'Dream Wedding Organizer',
-									package: 'Paket Grand'
-								},
-								pendukung: {
-									mc: 'MC Budi Santoso',
-									upacaraAdat: 'Upacara Adat Sunda',
-									intagiri: 'Intagiri Traditional - Basic',
-									tarian: 'Tari Jaipong'
-								}
-							}
-						]
-					}
-				]
+				selectedVenues: []
+			}
+		],
+		contactLogs: [
+			{ 
+				id: 1, 
+				eventId: 'evt-001',
+				eventName: 'Akad Nikah',
+				createdDate: '2025-05-01T10:00:00Z', 
+				attachment: 'quotation_akad.pdf', 
+				status: 'Sudah Direspon' 
+			},
+			{ 
+				id: 2, 
+				eventId: 'evt-001',
+				eventName: 'Akad Nikah',
+				createdDate: '2025-05-15T14:30:00Z', 
+				attachment: 'venue_confirmation.jpg', 
+				status: 'Prospek' 
+			},
+			{ 
+				id: 3, 
+				eventId: 'evt-002',
+				eventName: 'Resepsi',
+				createdDate: '2025-05-20T09:00:00Z', 
+				attachment: null, 
+				status: 'Belum Ada Respon' 
 			}
 		]
 	},
 	{
 		id: 2,
-		name: 'Rudi & Sinta',
-		company: 'Creative Agency',
-		phone: '08123456789',
-		salesperson: 'Administrator',
+		opportunityName: 'Corporate Event - Tech Summit 2025',
+		salespersonId: 2,
+		contacts: [
+			{ name: 'Sarah', phone: '08123456789', keterangan: 'Event Manager' }
+		],
 		events: [
 			{
 				id: 'evt-003',
-				name: 'Wedding Reception - Rudi & Sinta',
-				date: '2025-07-20',
-				status: 'Contract Signed',
-				selectedVenues: [
-					{
-						venueName: 'Royal Hall',
-						selectedPax: [
-							{
-								paxNumber: 400,
-								buffet: {
-									type: 'Buffet Traditional',
-									quantity: 400,
-									items: [
-										{ category: 'Appetizer', menu: 'Gado-gado, Karedok' },
-										{ category: 'Main Course', menu: 'Nasi Kuning, Rendang, Ayam Betutu' },
-										{ category: 'Dessert', menu: 'Es Campur, Klepon' }
-									]
-								},
-								buffetPendukung: {
-									items: [
-										{ category: 'Extra Dessert', menu: 'Traditional Sweets', quantity: 400, notes: '' }
-									],
-									totalQuantity: 400
-								},
-								gubukan: {
-									items: [
-										{ category: 'Appetizer', menu: 'Lumpia Semarang', quantity: 400, notes: '' }
-									],
-									totalQuantity: 400
-								},
-								dekorasi: {
-									vendor: 'Elegant Decoration',
-									items: [
-										{ item: 'Dekorasi Pelaminan Traditional', quantity: 1, notes: '' }
-									]
-								},
-								riasBusana: {
-									vendor: 'Traditional Beauty',
-									items: [
-										{ item: 'Paket Rias Adat Minang', quantity: 1, notes: '' }
-									]
-								},
-								photoVideo: {
-									vendor: 'Cinematic Wedding',
-									items: [
-										{ item: 'Paket Foto Standard', quantity: 1, notes: '' }
-									]
-								},
-								entertainment: {
-									vendor: 'Prestige Entertainment',
-									type: 'Traditional Gamelan'
-								},
-								weddingOrganizer: {
-									vendor: 'Perfect Wedding Organizer',
-									package: 'Paket Premium'
-								},
-								pendukung: {
-									mc: 'MC Rina Kusuma',
-									upacaraAdat: 'Upacara Adat Minang',
-									intagiri: 'Intagiri Traditional - Standard',
-									tarian: 'Tari Piring'
-								}
-							}
-						]
-					}
-				]
+				name: 'Tech Summit Opening',
+				date: '2025-07-10',
+				status: 'Planning',
+				selectedVenues: []
+			}
+		],
+		contactLogs: [
+			{ 
+				id: 4, 
+				eventId: 'evt-003',
+				eventName: 'Tech Summit Opening',
+				createdDate: '2025-04-10T11:00:00Z', 
+				attachment: 'initial_proposal.pdf', 
+				status: 'Belum Ada Respon' 
 			}
 		]
 	},
 	{
 		id: 3,
-		name: 'Ahmad & Fitri',
-		company: 'Retail Business',
-		phone: '08567890123',
-		salesperson: 'Administrator',
+		opportunityName: 'Birthday Party - Lisa 25th',
+		salespersonId: 3,
+		contacts: [
+			{ name: 'Lisa', phone: '08234567890', keterangan: 'Birthday Girl' },
+			{ name: 'Budi', phone: '08234567891', keterangan: 'Organizer' }
+		],
 		events: [
 			{
 				id: 'evt-004',
-				name: 'Intimate Wedding - Ahmad & Fitri',
-				date: '2025-08-10',
-				status: 'Planning',
-				selectedVenues: [
-					{
-						venueName: 'Paradise Garden',
-						selectedPax: [
-							{
-								paxNumber: 200,
-								buffet: {
-									type: 'Buffet Standard',
-									quantity: 200,
-									items: [
-										{ category: 'Appetizer', menu: 'Salad Bar, Soup Station' },
-										{ category: 'Main Course', menu: 'Nasi Putih, Ayam Goreng, Ikan Bakar' },
-										{ category: 'Dessert', menu: 'Fresh Fruit, Pudding' }
-									]
-								},
-								buffetPendukung: {
-									items: [],
-									totalQuantity: 0
-								},
-								gubukan: {
-									items: [
-										{ category: 'Main Course', menu: 'Nasi Goreng Spesial', quantity: 200, notes: '' }
-									],
-									totalQuantity: 200
-								},
-								dekorasi: {
-									vendor: 'Paradise Decor',
-									items: [
-										{ item: 'Dekorasi Outdoor Complete', quantity: 1, notes: '' }
-									]
-								},
-								riasBusana: {
-									vendor: 'Sari Makeup Artist',
-									items: [
-										{ item: 'Paket Rias Pengantin Akad', quantity: 1, notes: '' }
-									]
-								},
-								photoVideo: {
-									vendor: 'Royal Photography',
-									items: [
-										{ item: 'Paket Foto Standard', quantity: 1, notes: '' }
-									]
-								},
-								entertainment: {
-									vendor: 'Joy Entertainment',
-									type: 'Acoustic Solo'
-								},
-								weddingOrganizer: {
-									vendor: 'Dream Wedding Organizer',
-									package: 'Paket Minimalist'
-								},
-								pendukung: {
-									mc: 'MC Sarah Wijaya',
-									upacaraAdat: 'Upacara Adat Betawi',
-									intagiri: 'Intagiri Traditional - Basic',
-									tarian: 'Tari Pendet'
-								}
-							}
-						]
-					}
-				]
+				name: 'Birthday Celebration',
+				date: '2025-08-20',
+				status: 'Initial Contact',
+				selectedVenues: []
+			}
+		],
+		contactLogs: [
+			{ 
+				id: 5, 
+				eventId: 'evt-004',
+				eventName: 'Birthday Celebration',
+				createdDate: '2025-04-25T15:00:00Z', 
+				attachment: 'whatsapp_chat.jpg', 
+				status: 'Sudah Direspon' 
+			}
+		]
+	},
+	{
+		id: 4,
+		opportunityName: 'Wedding Dewi & Rizki',
+		salespersonId: 1,
+		contacts: [
+			{ name: 'Dewi', phone: '08345678901', keterangan: 'Bride' }
+		],
+		events: [],
+		contactLogs: []
+	},
+	{
+		id: 5,
+		opportunityName: 'Annual Gathering PT Global',
+		salespersonId: 4,
+		contacts: [
+			{ name: 'Maya', phone: '08456789012', keterangan: 'HR Manager' },
+			{ name: 'Arief', phone: '08456789013', keterangan: 'Finance' }
+		],
+		events: [
+			{
+				id: 'evt-005',
+				name: 'Annual Gathering',
+				date: '2025-12-15',
+				status: 'Quotation Sent',
+				selectedVenues: []
+			}
+		],
+		contactLogs: [
+			{ 
+				id: 6, 
+				eventId: 'evt-005',
+				eventName: 'Annual Gathering',
+				createdDate: '2025-03-01T08:00:00Z', 
+				attachment: 'quotation_annual.pdf', 
+				status: 'Prospek' 
+			},
+			{ 
+				id: 7, 
+				eventId: 'evt-005',
+				eventName: 'Annual Gathering',
+				createdDate: '2025-03-15T16:00:00Z', 
+				attachment: 'follow_up.pdf', 
+				status: 'Prospek' 
 			}
 		]
 	}
@@ -393,9 +236,31 @@ export function getAllEvents() {
 		contact.events.map((event) => ({
 			...event,
 			contactId: contact.id,
-			contactName: contact.name
+			opportunityName: contact.opportunityName
 		}))
 	);
+}
+
+export function getContactLogsByContactId(contactId) {
+	const contact = getContactById(contactId);
+	return contact ? contact.contactLogs : [];
+}
+
+export function getContactLogsByEventId(contactId, eventId) {
+	const contact = getContactById(contactId);
+	if (!contact) return [];
+	return contact.contactLogs.filter(log => log.eventId === eventId);
+}
+
+export function getLatestContactLogStatus(contactId) {
+	const logs = getContactLogsByContactId(contactId);
+	if (logs.length === 0) return null;
+	
+	const sortedLogs = [...logs].sort((a, b) => 
+		new Date(b.createdDate) - new Date(a.createdDate)
+	);
+	
+	return sortedLogs[0].status;
 }
 
 // Validation functions to ensure data integrity
