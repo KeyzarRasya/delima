@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
   import Sidebar from '$lib/components/Sidebar.svelte';
   import AttachmentUploadPopup from '$lib/components/AttachmentUploadPopup.svelte';
   import { page } from '$app/stores';

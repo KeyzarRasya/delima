@@ -58,8 +58,6 @@
     eventData.selectedVenues = [...eventData.selectedVenues, tempVenue];
     tempVenue = '';
   }
-
-  console.log(eventData.selectedVenues)
   
   $: if (tempPax && !eventData.selectedPax.includes(parseInt(tempPax))) {
     const paxNum = parseInt(tempPax);
@@ -209,75 +207,49 @@
       <div class="bg-white rounded-lg shadow-lg p-8">
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-4">{eventData.name}</h1>
-          
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
-              <input
-                type="date"
-                bind:value={eventData.eventDate}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+          <div class="grid grid-cols-2 gap-6 mb-8">
+            <div class="">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
+                <input
+                  type="date"
+                  bind:value={eventData.eventDate}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
             </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Pax</label>
+              <div class="mb-2">
+                <select
+                  bind:value={tempPax}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  
+                >
+                  <option value="">Select pax</option>
+                  {#each masterPax as pax}
+                    <option value={pax.pax}>{pax.pax}</option>
+                  {/each}
+                </select>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                {#each eventData.selectedPax as pax}
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                    {pax} Pax
+                    <button on:click={() => removePax(pax)} class="ml-2 hover:text-blue-600">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                {/each}
+              </div>
+            </div>
+
           </div>
         </div>
         
-        <div class="grid grid-cols-2 gap-6 mb-8">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Venue</label>
-            <div class="mb-2">
-              <select
-                bind:value={tempVenue}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="">Select venue</option>
-                {#each masterVenues as venue}
-                  <option value={venue.venue}>{venue.venue}</option>
-                {/each}
-              </select>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              {#each eventData.selectedVenues as venue}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-amber-100 text-amber-800">
-                  {venue}
-                  <button on:click={() => removeVenue(venue)} class="ml-2 hover:text-amber-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              {/each}
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Pax</label>
-            <div class="mb-2">
-              <select
-                bind:value={tempPax}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                
-              >
-                <option value="">Select pax</option>
-                {#each masterPax as pax}
-                  <option value={pax.pax}>{pax.pax}</option>
-                {/each}
-              </select>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              {#each eventData.selectedPax as pax}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                  {pax} Pax
-                  <button on:click={() => removePax(pax)} class="ml-2 hover:text-blue-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              {/each}
-            </div>
-          </div>
-        </div>
         
         {#if eventData.selectedPax.length > 0}
           <div class="mb-6">

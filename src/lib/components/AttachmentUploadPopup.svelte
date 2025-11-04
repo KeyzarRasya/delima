@@ -1,6 +1,13 @@
 <script>
   export let isOpen = false;
-  export let onClose;
+  /**
+	 * @type {() => void}
+	 */
+   export let onClose;
+
+   /**
+	 * @type {() => void}
+	 */
   export let onSave;
   
   let selectedFile = null;
