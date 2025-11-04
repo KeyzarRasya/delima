@@ -1,13 +1,14 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { salespersonData } from '$lib/data/salespersonData.js';
   
   const dispatch = createEventDispatcher();
   
-  let contactData = {
+  let formData = {
     name: '',
     company: '',
     phone: '',
-    salesperson: 'Administrator'
+    salespersonId: 1
   };
   
   function handleClose() {
@@ -15,20 +16,17 @@
   }
   
   function handleSave() {
-    if (!contactData.name || !contactData.phone) {
-      alert('Please fill Name and Phone Number');
-      return;
+    if (formData.name && formData.company && formData.phone) {
+      dispatch('save', formData);
+      handleClose();
     }
-    
-    dispatch('save', contactData);
-    handleClose();
   }
 </script>
 
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h3 class="text-xl font-bold text-gray-800">Add New Contact</h3>
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">Add New Contact</h2>
       <button
         on:click={handleClose}
         class="text-gray-400 hover:text-gray-600"
@@ -39,66 +37,50 @@
       </button>
     </div>
     
-    <div class="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+    <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Name <span class="text-red-500">*</span>
-        </label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Opportunity Name</label>
         <input
           type="text"
-          bind:value={contactData.name}
-          placeholder="Enter contact name"
+          bind:value={formData.name}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          placeholder="Enter name"
         />
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Company
-        </label>
-        <input
-          type="text"
-          bind:value={contactData.company}
-          placeholder="Enter company name"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-        />
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Phone Number <span class="text-red-500">*</span>
-        </label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
         <input
           type="tel"
-          bind:value={contactData.phone}
-          placeholder="Enter phone number"
+          bind:value={formData.phone}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          placeholder="Enter phone number"
         />
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Salesperson
-        </label>
-        <input
-          type="text"
-          bind:value={contactData.salesperson}
-          placeholder="Enter salesperson name"
+        <label class="block text-sm font-medium text-gray-700 mb-2">Salesperson</label>
+        <select
+          bind:value={formData.salespersonId}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-        />
+        >
+          {#each salespersonData as salesperson}
+            <option value={salesperson.id}>{salesperson.name}</option>
+          {/each}
+        </select>
       </div>
     </div>
     
-    <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+    <div class="flex gap-3 mt-6">
       <button
         on:click={handleClose}
-        class="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
       >
         Cancel
       </button>
       <button
         on:click={handleSave}
-        class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+        class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
       >
         Save
       </button>
