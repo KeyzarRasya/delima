@@ -185,6 +185,11 @@
   function goBack() {
     goto(`/crm/${contactId}`);
   }
+  
+  function handleSave() {
+    console.log('Saving event data...', { eventData, paxData });
+    alert('Event data saved successfully!');
+  }
 </script>
 
 <div class="flex h-screen bg-gray-50">
@@ -208,7 +213,7 @@
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-4">{eventData.name}</h1>
           <div class="grid grid-cols-2 gap-6 mb-8">
-            <div class="">
+            <div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
                 <input
@@ -221,126 +226,98 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Pax</label>
-              <div class="mb-2">
+              <div class="flex gap-2">
                 <select
                   bind:value={tempPax}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
-                  <option value="">Select pax</option>
+                  <option value="">Select Pax</option>
                   {#each masterPax as pax}
-                    <option value={pax.pax}>{pax.pax}</option>
+                    {#if !eventData.selectedPax.includes(pax.pax)}
+                      <option value={pax.pax}>{pax.pax} Pax</option>
+                    {/if}
                   {/each}
                 </select>
               </div>
-              <div class="flex flex-wrap gap-2">
-                {#each eventData.selectedPax as pax}
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                    {pax} Pax
-                    <button on:click={() => removePax(pax)} class="ml-2 hover:text-blue-600">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </span>
-                {/each}
-              </div>
+              
+              {#if eventData.selectedPax.length > 0}
+                <div class="mt-3 flex flex-wrap gap-2">
+                  {#each eventData.selectedPax as pax}
+                    <span class="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+                      {pax} Pax
+                      <button
+                        on:click={() => removePax(pax)}
+                        class="hover:text-amber-900"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  {/each}
+                </div>
+              {/if}
             </div>
-
           </div>
         </div>
         
-        
         {#if eventData.selectedPax.length > 0}
           <div class="mb-6">
-            <div class="border-b border-gray-200">
-              <nav class="-mb-px flex space-x-8">
-                {#each eventData.selectedPax as pax}
-                  <button
-                    on:click={() => activeTab = pax.toString()}
-                    class="border-b-2 py-4 px-1 text-sm font-medium {activeTab === pax.toString() ? 'border-amber-500 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
-                  >
-                    {pax} Pax
-                  </button>
-                {/each}
-              </nav>
+            <div class="flex gap-2 border-b">
+              {#each eventData.selectedPax as pax}
+                <button
+                  on:click={() => activeTab = pax.toString()}
+                  class="px-6 py-3 font-medium transition-colors {activeTab === pax.toString() ? 'border-b-2 border-amber-600 text-amber-600' : 'text-gray-600 hover:text-gray-800'}"
+                >
+                  {pax} Pax
+                </button>
+              {/each}
             </div>
           </div>
           
           {#if activeTab && paxData[activeTab]}
-            <div class="space-y-6">
+            <div class="space-y-8">
               <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Venue Selection for {activeTab} Pax</h3>
-                
-                <div class="mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Venues</h3>
+                <div class="space-y-4">
+                  {#if paxData[activeTab].selectedVenues && paxData[activeTab].selectedVenues.length > 0}
+                    {#each paxData[activeTab].selectedVenues as venue, index}
+                      <div class="flex gap-4 items-center">
+                        <select
+                          on:change={(e) => handleVenueSelection(index, e.target.value)}
+                          value={venue.venueName}
+                          class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        >
+                          <option value="">Select Venue</option>
+                          {#each availableVenuesForActivePax as v}
+                            <option value={v.venue}>{v.venue}</option>
+                          {/each}
+                        </select>
+                        <span class="text-sm text-gray-600 w-48">{venue.price ? `Rp ${venue.price.toLocaleString()}` : ''}</span>
+                        <button
+                          on:click={() => removeVenueRow(index)}
+                          class="text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    {/each}
+                  {/if}
+                  
                   <button
                     on:click={addVenueRow}
                     class="text-amber-600 hover:text-amber-700 font-medium text-sm"
                   >
-                    + Add Venue Row
+                    Add venue
                   </button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                  <table class="w-full">
-                    <thead class="bg-gray-50">
-                      <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                      {#if paxData[activeTab].selectedVenues && paxData[activeTab].selectedVenues.length > 0}
-                        {#each paxData[activeTab].selectedVenues as venueRow, index}
-                          <tr>
-                            <td class="px-4 py-3">
-                              <select
-                                bind:value={venueRow.venueName}
-                                on:change={(e) => handleVenueSelection(index, e.target.value)}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                              >
-                                <option value="">Select venue</option>
-                                {#each availableVenuesForActivePax as venue}
-                                  <option value={venue.venue}>{venue.venue}</option>
-                                {/each}
-                              </select>
-                            </td>
-                            <td class="px-4 py-3">
-                              <input
-                                type="text"
-                                value={venueRow.price ? `Rp ${venueRow.price.toLocaleString('id-ID')}` : ''}
-                                disabled
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
-                              />
-                            </td>
-                            <td class="px-4 py-3">
-                              <button
-                                on:click={() => removeVenueRow(index)}
-                                class="text-red-500 hover:text-red-700"
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        {/each}
-                      {:else}
-                        <tr>
-                          <td colspan="3" class="px-4 py-3 text-center text-gray-500">
-                            No venues added. Click "Add Venue Row" to add venues.
-                          </td>
-                        </tr>
-                      {/if}
-                    </tbody>
-                  </table>
                 </div>
               </div>
               
               <div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Buffet</h3>
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="mb-4 grid grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Buffet Type</label>
                     <select
                       bind:value={paxData[activeTab].buffetType}
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -351,6 +328,7 @@
                       {/each}
                     </select>
                   </div>
+                  
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                     <input
@@ -401,7 +379,7 @@
                       {:else}
                         <tr>
                           <td colspan="3" class="px-4 py-3 text-center text-gray-500">
-                            Click "Add Row" to add items.
+                            Click "Add row" to add items.
                           </td>
                         </tr>
                       {/if}
@@ -450,7 +428,7 @@
                             </td>
                             <td class="px-4 py-3">
                               <input
-                                type="number"
+                                type="text"
                                 bind:value={item.quantity}
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                               />
@@ -571,7 +549,7 @@
               </div>
               
               <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Rias Busana</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Rias dan Busana</h3>
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
                   <select
@@ -650,7 +628,7 @@
               </div>
               
               <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Photo & Video</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Photo dan Video</h3>
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
                   <select
@@ -728,47 +706,45 @@
                 </button>
               </div>
               
-              <div class="grid grid-cols-2 gap-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Entertainment</h3>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Entertainment</h3>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
-                    <select
-                      bind:value={paxData[activeTab].entertainmentVendor}
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="">Select vendor</option>
-                      {#each entertainmentVendors as vendor}
-                        <option value={vendor.name}>{vendor.name}</option>
-                      {/each}
-                    </select>
-                  </div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
+                  <select
+                    bind:value={paxData[activeTab].entertainmentVendor}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select vendor</option>
+                    {#each entertainmentVendors as vendor}
+                      <option value={vendor.name}>{vendor.name}</option>
+                    {/each}
+                  </select>
                 </div>
-                
+              </div>
+              
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Wedding Organizer</h3>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Wedding Organizer</h3>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
-                    <select
-                      bind:value={paxData[activeTab].weddingOrganizerVendor}
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="">Select vendor</option>
-                      {#each weddingOrganizerVendors as vendor}
-                        <option value={vendor.name}>{vendor.name}</option>
-                      {/each}
-                    </select>
-                  </div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
+                  <select
+                    bind:value={paxData[activeTab].weddingOrganizerVendor}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="">Select vendor</option>
+                    {#each weddingOrganizerVendors as vendor}
+                      <option value={vendor.name}>{vendor.name}</option>
+                    {/each}
+                  </select>
                 </div>
               </div>
               
               <div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Pendukung</h3>
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">MC</label>
                     <select
-                      bind:value={paxData[activeTab].pendukungMc}
+                    bind:value={paxData[activeTab].pendukungMc}
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                     >
                       <option value="">Select MC</option>
@@ -781,7 +757,7 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Upacara Adat</label>
                     <select
-                      bind:value={paxData[activeTab].pendukungUpacaraAdat}
+                    bind:value={paxData[activeTab].pendukungUpacaraAdat}
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                     >
                       <option value="">Select Upacara Adat</option>
@@ -792,9 +768,9 @@
                   </div>
                   
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Iringan</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Intagiri</label>
                     <select
-                      bind:value={paxData[activeTab].pendukungIntagiri}
+                    bind:value={paxData[activeTab].pendukungIntagiri}
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                     >
                       <option value="">Select Iringan</option>
@@ -827,7 +803,13 @@
         {/if}
         
         {#if eventData.selectedPax.length > 0}
-          <div class="mt-8 flex justify-end">
+          <div class="mt-8 flex justify-end gap-4">
+            <button
+              on:click={handleSave}
+              class="px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
+            >
+              Save
+            </button>
             <button
               on:click={() => goto(`/crm/${contactId}/event/${eventId}/contract`)}
               class="px-6 py-3 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors font-medium"
