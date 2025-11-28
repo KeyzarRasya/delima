@@ -16,7 +16,8 @@
 		{ id: 'dekorasi', label: 'Dekorasi' },
 		{ id: 'entertainment', label: 'Entertainment' },
 		{ id: 'pendukung', label: 'Pendukung' },
-		{ id: 'catering', label: 'Catering' }
+		{ id: 'catering', label: 'Catering' },
+		{ id: 'gedung', label: 'Gedung' }
 	];
 
 	const masterDataItems = [
