@@ -11,6 +11,7 @@ export const crmContacts = [
 		id: 1,
 		opportunityName: 'Wedding Juni & Hermansyah',
 		salespersonId: 1,
+		salespersonIds: [1],
 		contacts: [
 			{ name: 'Juni', phone: '08999415758', keterangan: 'Bride' },
 			{ name: 'Hermansyah', phone: '08999415759', keterangan: 'Groom' }
@@ -63,19 +64,19 @@ export const crmContacts = [
 									type: 'Acoustic Solo'
 								},
 								weddingOrganizer: {
-									vendorId: 3,
-									vendor: 'Dream Wedding Organizer',
-									package: 'Paket Minimalist'
+									vendorId: 1,
+									vendor: 'Perfect Wedding Organizer',
+									packageName: 'Bronze Package'
 								},
-								pendukung: {
-									mcId: 2,
-									mc: 'MC Sarah Wijaya',
-									upacaraAdatId: 4,
-									upacaraAdat: 'Upacara Adat Betawi',
-									intagiriId: 1,
-									intagiri: 'Intagiri Traditional - Basic',
-									tarianId: 5,
-									tarian: 'Tari Pendet'
+								mc: {
+									mcId: 1,
+									name: 'Bambang MC',
+									price: 1500000
+								},
+								gubukan: {
+									items: [
+										{ item: 'Gubukan Basic', quantity: 200, price: 15000, source: 'Master Data' }
+									]
 								}
 							}
 						]
@@ -95,62 +96,66 @@ export const crmContacts = [
 				id: 1, 
 				eventId: 'evt-001',
 				eventName: 'Akad Nikah',
-				createdDate: '2025-05-01T10:00:00Z', 
-				attachment: 'quotation_akad.pdf', 
+				createdDate: '2025-02-10T14:30:00Z', 
+				attachment: 'initial_meeting.pdf', 
 				status: 'Sudah Direspon' 
 			},
 			{ 
 				id: 2, 
 				eventId: 'evt-001',
 				eventName: 'Akad Nikah',
-				createdDate: '2025-05-15T14:30:00Z', 
-				attachment: 'venue_confirmation.jpg', 
+				createdDate: '2025-02-15T10:00:00Z', 
+				attachment: 'venue_photos.jpg', 
 				status: 'Prospek' 
-			},
-			{ 
-				id: 3, 
-				eventId: 'evt-002',
-				eventName: 'Resepsi',
-				createdDate: '2025-05-20T09:00:00Z', 
-				attachment: null, 
-				status: 'Belum Ada Respon' 
 			}
-		]
+		],
+		contracts: []
 	},
 	{
 		id: 2,
-		opportunityName: 'Corporate Event - Tech Summit 2025',
+		opportunityName: 'Corporate Event PT Maju',
 		salespersonId: 2,
+		salespersonIds: [2],
 		contacts: [
-			{ name: 'Sarah', phone: '08123456789', keterangan: 'Event Manager' }
+			{ name: 'Budi', phone: '08123456789', keterangan: 'Event Manager' },
+			{ name: 'Siti', phone: '08234567890', keterangan: 'Finance' }
 		],
 		events: [
 			{
 				id: 'evt-003',
-				name: 'Tech Summit Opening',
+				name: 'Annual Dinner',
 				date: '2025-07-10',
-				status: 'Planning',
+				status: 'Quotation Sent',
 				selectedVenues: []
 			}
 		],
 		contactLogs: [
 			{ 
+				id: 3, 
+				eventId: 'evt-003',
+				eventName: 'Annual Dinner',
+				createdDate: '2025-03-20T09:15:00Z', 
+				attachment: 'quotation_v1.pdf', 
+				status: 'Belum Ada Respon' 
+			},
+			{ 
 				id: 4, 
 				eventId: 'evt-003',
-				eventName: 'Tech Summit Opening',
-				createdDate: '2025-04-10T11:00:00Z', 
-				attachment: 'initial_proposal.pdf', 
-				status: 'Belum Ada Respon' 
+				eventName: 'Annual Dinner',
+				createdDate: '2025-03-25T16:45:00Z', 
+				attachment: 'follow_up_call.mp3', 
+				status: 'Sudah Direspon' 
 			}
-		]
+		],
+		contracts: []
 	},
 	{
 		id: 3,
-		opportunityName: 'Birthday Party - Lisa 25th',
+		opportunityName: 'Birthday Party Sarah',
 		salespersonId: 3,
+		salespersonIds: [3],
 		contacts: [
-			{ name: 'Lisa', phone: '08234567890', keterangan: 'Birthday Girl' },
-			{ name: 'Budi', phone: '08234567891', keterangan: 'Organizer' }
+			{ name: 'Sarah', phone: '08987654321', keterangan: 'Host' }
 		],
 		events: [
 			{
@@ -170,22 +175,26 @@ export const crmContacts = [
 				attachment: 'whatsapp_chat.jpg', 
 				status: 'Sudah Direspon' 
 			}
-		]
+		],
+		contracts: []
 	},
 	{
 		id: 4,
 		opportunityName: 'Wedding Dewi & Rizki',
 		salespersonId: 1,
+		salespersonIds: [1],
 		contacts: [
 			{ name: 'Dewi', phone: '08345678901', keterangan: 'Bride' }
 		],
 		events: [],
-		contactLogs: []
+		contactLogs: [],
+		contracts: []
 	},
 	{
 		id: 5,
 		opportunityName: 'Annual Gathering PT Global',
 		salespersonId: 4,
+		salespersonIds: [4],
 		contacts: [
 			{ name: 'Maya', phone: '08456789012', keterangan: 'HR Manager' },
 			{ name: 'Arief', phone: '08456789013', keterangan: 'Finance' }
@@ -216,7 +225,8 @@ export const crmContacts = [
 				attachment: 'follow_up.pdf', 
 				status: 'Prospek' 
 			}
-		]
+		],
+		contracts: []
 	}
 ];
 
@@ -272,17 +282,55 @@ export function validateVenuePaxRelationship(venueName, paxNumber) {
 	if (!hasPax) {
 		return {
 			valid: false,
-			error: `Venue ${venueName} does not support ${paxNumber} pax. Available pax: ${venue.paxPrices.map((pp) => pp.pax).join(', ')}`
+			error: `Venue ${venueName} does not support ${paxNumber} pax. Available pax: ${venue.paxPrices.map((p) => p.pax).join(', ')}`
 		};
 	}
 
 	return { valid: true };
 }
 
-export function getPaxPriceForVenue(venueName, paxNumber) {
+export function getVenuePaxPrice(venueName, paxNumber) {
 	const venue = masterVenues.find((v) => v.venue === venueName);
 	if (!venue) return null;
 
 	const paxPrice = venue.paxPrices.find((pp) => pp.pax === paxNumber);
 	return paxPrice ? paxPrice.price : null;
+}
+
+// Vendor validation functions
+export function validateDekorasiVendor(vendorId) {
+	return dekorasiVendors.some((v) => v.id === vendorId);
+}
+
+export function validateRiasBusanaVendor(vendorId) {
+	return riasBusanaVendors.some((v) => v.id === vendorId);
+}
+
+export function validatePhotoVideoVendor(vendorId) {
+	return photoVideoVendors.some((v) => v.id === vendorId);
+}
+
+export function validateEntertainmentVendor(vendorId) {
+	return entertainmentVendors.some((v) => v.id === vendorId);
+}
+
+export function validateWeddingOrganizerVendor(vendorId) {
+	return weddingOrganizerVendors.some((v) => v.id === vendorId);
+}
+
+// Pendukung validation functions
+export function validateMc(mcId) {
+	return mcData.some((mc) => mc.id === mcId);
+}
+
+export function validateUpacaraAdat(upacaraAdatId) {
+	return upacaraAdatData.some((upacara) => upacara.id === upacaraAdatId);
+}
+
+export function validateIntagiri(intagiriId) {
+	return intagiriData.some((intagiri) => intagiri.id === intagiriId);
+}
+
+export function validateTarian(tarianId) {
+	return tarianData.some((tarian) => tarian.id === tarianId);
 }
