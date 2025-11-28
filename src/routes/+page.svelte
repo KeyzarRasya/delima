@@ -9,6 +9,7 @@
 	import Venue from '$lib/components/Venue.svelte';
 	import Pax from '$lib/components/Pax.svelte';
 	import ContactManagement from '$lib/components/ContactManagement.svelte';
+	import Gedung from '$lib/components/Gedung.svelte';
 
 	let activeMenu = 'photo-video';
 
@@ -51,6 +52,8 @@
 				<Pax />
 			{:else if activeMenu === 'contact-management'}
 				<ContactManagement />
+			{:else if activeMenu === 'gedung'}
+				<Gedung />
 			{/if}
 		</div>
 	</main>
