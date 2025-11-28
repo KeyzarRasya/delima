@@ -7,6 +7,7 @@
   $: eventId = $page.params.eventId;
   
   let activeTab = 'detail';
+  let moodboardFiles = [];
   
   const tabs = [
     { id: 'detail', label: 'Detail' },
@@ -517,7 +518,7 @@
               <section>
                 <div class="mb-4">
                   <h2 class="text-lg font-bold text-gray-800 mb-3">Dekorasi Pelaminan dan Ruangan</h2>
-                  <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-4 mb-4">
                     <div class="flex items-center gap-2">
                       <span class="text-gray-800 text-sm">Vendor</span>
                       <select bind:value={dekorasiVendor} class="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
@@ -532,8 +533,76 @@
                       </button>
                     </div>
                   </div>
+                  
+                  <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                      <h3 class="text-sm font-semibold text-gray-800">Moodboard Files</h3>
+                      <label class="cursor-pointer">
+                        <input
+                          type="file"
+                          bind:this={fileInput}
+                          on:change={handleMoodboardUpload}
+                          accept="image/*"
+                          multiple
+                          class="hidden"
+                        />
+                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700 transition-colors">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                          </svg>
+                          Upload Moodboard
+                        </span>
+                      </label>
+                    </div>
+                    
+                    {#if moodboardFiles.length > 0}
+                      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {#each moodboardFiles as file}
+                          <div class="relative group bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                            <div class="aspect-square overflow-hidden">
+                              <img src={file.url} alt={file.name} class="w-full h-full object-cover" />
+                            </div>
+                            <div class="p-2">
+                              <p class="text-xs text-gray-700 truncate font-medium" title={file.name}>{file.name}</p>
+                              <p class="text-xs text-gray-500 mt-1">{new Date(file.uploadDate).toLocaleDateString()}</p>
+                            </div>
+                            <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                on:click={() => viewMoodboard(file.url)}
+                                class="p-1.5 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                                title="View"
+                              >
+                                <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </button>
+                              <button
+                                on:click={() => removeMoodboard(file.id)}
+                                class="p-1.5 bg-white rounded-full shadow-lg hover:bg-red-100 transition-colors"
+                                title="Remove"
+                              >
+                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    {:else}
+                      <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500">No moodboard files uploaded yet</p>
+                        <p class="text-xs text-gray-400 mt-1">Click "Upload Moodboard" to add files</p>
+                      </div>
+                    {/if}
+                  </div>
                 </div>
-                <div class="overflow-x-auto">
+                
+                <div class="overflow-x-auto mt-4">
                   <table class="min-w-full">
                     <thead>
                       <tr class="border-b">
